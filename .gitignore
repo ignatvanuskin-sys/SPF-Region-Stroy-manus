@@ -32,3 +32,9 @@ outputs/
 spf-region-manus-new/
 .manus/
 .manus-webdev/
+
+# Служебные скрипты QA-агентов (не часть проекта)
+_qa*.js
+qa_*.js
+measure*.js
+
