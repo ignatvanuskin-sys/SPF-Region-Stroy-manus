@@ -1,0 +1,46 @@
+import { Calculator, ChevronDown, Info, Ruler, Send } from 'lucide-react'
+import { useMemo, useState } from 'react'
+
+const rub = new Intl.NumberFormat('ru-KZ', { maximumFractionDigits: 0 })
+const profileOptions = [
+  { id: 'pvc', label: 'ПВХ', note: 'практичное решение', rate: 65000 },
+  { id: 'aluminum', label: 'Алюминий', note: 'легкие конструкции', rate: 85000 },
+  { id: 'warm-aluminum', label: 'Тёплый алюминий', note: 'для фасадов и дома', rate: 105000 },
+]
+const fittingOptions = [
+  { id: 'standard', label: 'Стандартная', rate: 1 },
+  { id: 'comfort', label: 'Комфорт', rate: 1.12 },
+  { id: 'premium', label: 'Премиум', rate: 1.25 },
+]
+const glazingOptions = [
+  { id: 'double', label: 'Двухкамерный стеклопакет', rate: 1 },
+  { id: 'energy', label: 'Энергосберегающий', rate: 1.1 },
+  { id: 'noise', label: 'Шумозащитный', rate: 1.18 },
+]
+
+export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
+  const [units, setUnits] = useState(3)
+  const [width, setWidth] = useState(1.2)
+  const [height, setHeight] = useState(1.4)
+  const [profile, setProfile] = useState('pvc')
+  const [fitting, setFitting] = useState('standard')
+  const [glazing, setGlazing] = useState('double')
+  const [installation, setInstallation] = useState(true)
+
+  const result = useMemo(() => {
+    const area = Math.max(0.1, units * width * height)
+    const profileRate = profileOptions.find((item) => item.id === profile)?.rate ?? 65000
+    const fittingRate = fittingOptions.find((item) => item.id === fitting)?.rate ?? 1
+    const glazingRate = glazingOptions.find((item) => item.id === glazing)?.rate ?? 1
+    const construction = area * profileRate * fittingRate * glazingRate
+    const install = installation ? area * 12000 + 10000 : 0
+    const total = construction + install
+    return { area, min: Math.round(total * 0.88), max: Math.round(total * 1.12) }
+  }, [units, width, height, profile, fitting, glazing, installation])
+
+  return <section id="calculator" className="border-y border-black/8 bg-[#173d35] px-5 py-16 text-[#f7f4ee] sm:px-8 lg:px-12 lg:py-24"><div className="mx-auto max-w-[1240px]"><div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start"><div><div className="flex size-12 items-center justify-center rounded-2xl bg-[#b18b52] text-[#fffdf9]"><Calculator size={23} /></div><p className="mt-7 text-xs uppercase tracking-[0.18em] text-[#d4b477]">Предварительный расчёт</p><h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] sm:text-5xl">Соберите конфигурацию за минуту.</h2><p className="mt-5 max-w-md text-base leading-7 text-[#d9e4dc]/80">Выберите профиль и фурнитуру, чтобы понять порядок бюджета. Финальная стоимость зависит от замера, конфигурации и дополнительных работ.</p><div className="mt-7 flex items-start gap-3 rounded-2xl border border-white/15 bg-white/5 p-4 text-sm leading-6 text-[#d9e4dc]/80"><Info size={18} className="mt-0.5 shrink-0 text-[#d4b477]" /> Демо-матрица ставок нужна для UX-прототипа. Перед публикацией замените значения на утвержденный прайс СПФ.</div></div><div className="rounded-[2rem] bg-[#f7f4ee] p-5 text-[#202522] shadow-[0_30px_80px_-35px_rgba(0,0,0,.45)] sm:p-8"><div className="grid gap-5 sm:grid-cols-3"><label className="text-sm text-[#59635d]">Количество окон<input type="number" min="1" max="30" value={units} onChange={(event) => setUnits(Number(event.target.value) || 1)} className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]" /></label><label className="text-sm text-[#59635d]">Ширина, м<input type="number" min="0.3" max="8" step="0.1" value={width} onChange={(event) => setWidth(Number(event.target.value) || 0.3)} className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]" /></label><label className="text-sm text-[#59635d]">Высота, м<input type="number" min="0.3" max="8" step="0.1" value={height} onChange={(event) => setHeight(Number(event.target.value) || 0.3)} className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]" /></label></div><div className="mt-6 grid gap-5 sm:grid-cols-3"><SelectField label="Профиль" value={profile} onChange={setProfile} options={profileOptions.map(({ id, label, note }) => ({ id, label: `${label} — ${note}` }))} /><SelectField label="Фурнитура" value={fitting} onChange={setFitting} options={fittingOptions.map(({ id, label }) => ({ id, label }))} /><SelectField label="Стеклопакет" value={glazing} onChange={setGlazing} options={glazingOptions.map(({ id, label }) => ({ id, label }))} /></div><label className="mt-5 flex cursor-pointer items-center gap-3 rounded-xl border border-black/8 bg-white p-4 text-sm text-[#59635d]"><input type="checkbox" checked={installation} onChange={(event) => setInstallation(event.target.checked)} className="size-5 accent-[#173d35]" /><span className="flex-1">Добавить ориентировочный монтаж и доставку</span><Ruler size={17} className="text-[#b18b52]" /></label><div aria-live="polite" className="mt-6 rounded-2xl bg-[#e6eee8] p-5"><p className="text-xs uppercase tracking-[0.15em] text-[#66806f]">Ориентир для {result.area.toFixed(1)} м²</p><p className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[#173d35]">{rub.format(result.min)}–{rub.format(result.max)} ₸</p><p className="mt-2 text-xs leading-5 text-[#66716a]">Не является офертой. Менеджер уточнит размеры, открывания, цвет, дополнительные элементы и подтвердит расчет.</p></div><div className="mt-5 flex flex-col gap-3 sm:flex-row"><button onClick={onOrder} className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#173d35] px-5 text-sm font-semibold !text-[#f7f4ee] hover:bg-[#24594c]">Получить точный расчёт <Send size={16} /></button><a href="#how-it-works" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#173d35]/20 px-5 text-sm font-medium text-[#173d35]">Как это работает</a></div></div></div></div></section>
+}
+
+function SelectField({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: Array<{ id: string; label: string }> }) {
+  return <label className="relative text-sm text-[#59635d]">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 h-12 w-full appearance-none rounded-xl border border-black/10 bg-white px-3 pr-9 text-sm font-medium text-[#202522] outline-none focus:ring-2 focus:ring-[#173d35]">{options.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select><ChevronDown size={16} className="pointer-events-none absolute right-3 bottom-3.5 text-[#66716a]" /></label>
+}
