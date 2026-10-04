@@ -50,7 +50,7 @@ const smallPrimary =
 const smallOutline =
   'inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#173d35]/25 px-5 text-sm font-medium text-[#173d35] hover:bg-white/60'
 const fieldClass =
-  'mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-[#202522] outline-none placeholder:text-[#9ca39d] focus:ring-2 focus:ring-[#173d35]'
+  'mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-4 text-[#202522] outline-none placeholder:text-[#7d8781] focus:ring-2 focus:ring-[#173d35]'
 const errorClass = 'mt-2 text-xs leading-5 text-[#b91c1c]'
 
 const whatsappHref = `https://wa.me/${CONTACT.whatsappNumber}?text=${encodeURIComponent(
@@ -79,6 +79,15 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<SubmitResult | null>(null)
   const submittingRef = useRef(false)
+
+  // Ошибку нужно не только показать, но и довести до неё пользователя.
+  useEffect(() => {
+    if (!Object.keys(errors).length) return
+    const firstInvalid = document.querySelector<HTMLElement>('[aria-invalid="true"]')
+    if (!firstInvalid) return
+    firstInvalid.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    firstInvalid.focus({ preventScroll: true })
+  }, [errors])
 
   const draft = useMemo(
     () =>
@@ -420,7 +429,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                         type="button"
                         aria-pressed={priorities.includes(item)}
                         onClick={() => togglePriority(item)}
-                        className={`h-11 rounded-full border px-4 text-sm transition-colors ${
+                        className={`h-12 rounded-full border px-4 text-sm transition-colors ${
                           priorities.includes(item)
                             ? 'border-[#173d35] bg-[#e6eee8] font-semibold text-[#173d35]'
                             : 'border-black/10 text-[#59635d] hover:bg-[#f4f1eb]'
@@ -500,13 +509,14 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                     className="sr-only"
                   />
 
-                  <label className="mt-4 flex cursor-pointer items-start gap-3 text-xs leading-5 text-[#66716a]">
+                  <label className="mt-4 flex min-h-11 cursor-pointer items-start gap-3 py-1 text-xs leading-5 text-[#66716a]">
                     <input
                       type="checkbox"
                       name="consent"
                       checked={consent}
+                      aria-invalid={Boolean(errors.consent)}
                       onChange={(event) => setConsent(event.target.checked)}
-                      className="mt-0.5 size-4 shrink-0 accent-[#173d35]"
+                      className="mt-0.5 size-5 shrink-0 accent-[#173d35]"
                     />
                     <span>
                       Согласен на обработку персональных данных для подготовки расчёта.{' '}
@@ -595,7 +605,8 @@ function App() {
   if (screen === 'order') return <OrderFlow initialService={preset} onBack={() => setScreen('home')} />
 
   return (
-    <main className="page-enter min-h-screen overflow-x-hidden bg-[#f4f1eb] pb-20 text-[#202522] md:pb-0">
+    <>
+      <main className="page-enter min-h-screen overflow-x-hidden bg-[#f4f1eb] pb-20 text-[#202522] md:pb-0">
       <header className="relative z-20 border-b border-black/8 bg-[#f4f1eb]/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-4 sm:px-8 lg:px-12">
           <a href="#top" className="flex items-center gap-3" aria-label="СПФ Регион Строй — на главную">
@@ -640,7 +651,7 @@ function App() {
           </div>
           <button
             type="button"
-            className="rounded-full p-2 text-[#173d35] sm:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-[#173d35] sm:hidden"
             aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
@@ -701,13 +712,19 @@ function App() {
               <Phone size={17} /> Позвонить
             </a>
           </div>
-          <div className="mt-8 flex flex-wrap gap-x-5 gap-y-3 text-sm text-[#66716a]">
+          <a
+            href="#trust"
+            className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-[#66716a] transition-colors hover:text-[#173d35]"
+          >
             <span className="font-semibold text-[#173d35]">
               4,9 <span className="font-normal text-[#66716a]">· 46 оценок</span>
             </span>
             <span>43 отзыва</span>
             <span>26 фото в 2GIS</span>
-          </div>
+            <span className="font-medium text-[#173d35] underline underline-offset-4">
+              Смотреть отзывы
+            </span>
+          </a>
           <p className="mt-4 text-sm text-[#66716a]">{CONTACT.address}</p>
         </div>
 
@@ -809,6 +826,14 @@ function App() {
         </div>
       </footer>
 
+      </main>
+
+      {/*
+        Липкая панель живёт ВНЕ <main>: у .page-enter задан animation-fill-mode: both
+        с transform в конечном кадре, а transform у предка делает position: fixed
+        дочерним для этого предка — из-за этого панель уезжала к низу страницы
+        и на телефоне была не видна.
+      */}
       <div className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-2 gap-2 rounded-2xl border border-white/60 bg-[#173d35]/95 p-2 shadow-[0_20px_45px_-18px_rgba(0,0,0,.45)] backdrop-blur-md sm:hidden">
         <button
           type="button"
@@ -826,7 +851,7 @@ function App() {
           <MessageCircle size={17} /> WhatsApp
         </a>
       </div>
-    </main>
+    </>
   )
 }
 

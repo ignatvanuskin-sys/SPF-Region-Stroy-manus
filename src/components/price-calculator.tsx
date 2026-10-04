@@ -1,6 +1,7 @@
-import { Calculator, ChevronDown, Ruler, Send } from 'lucide-react'
+import { Calculator, ChevronDown, MessageCircle, Ruler, Send } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
+  CONTACT,
   FITTING_OPTIONS,
   GLAZING_OPTIONS,
   PRICES_APPROVED,
@@ -28,6 +29,26 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
     const total = construction + install
     return { area, min: Math.round(total * 0.88), max: Math.round(total * 1.12) }
   }, [units, width, height, profile, fitting, glazing, installation])
+
+  // Короткий путь «сайт → WhatsApp»: конфигурация уходит менеджеру готовым текстом.
+  const whatsappUrl = useMemo(() => {
+    const label = (options: ReadonlyArray<{ id: string; label: string }>, id: string) =>
+      options.find((item) => item.id === id)?.label ?? id
+
+    const message = [
+      'Здравствуйте! Собрал конфигурацию на сайте СПФ Регион Строй:',
+      `Окон: ${units}`,
+      `Размер: ${width} × ${height} м`,
+      `Площадь: ${result.area.toFixed(1)} м²`,
+      `Профиль: ${label(PROFILE_OPTIONS, profile)}`,
+      `Фурнитура: ${label(FITTING_OPTIONS, fitting)}`,
+      `Стеклопакет: ${label(GLAZING_OPTIONS, glazing)}`,
+      installation ? 'Нужен монтаж и доставка' : 'Без монтажа',
+      'Подскажите, пожалуйста, стоимость.',
+    ].join('\n')
+
+    return `https://wa.me/${CONTACT.whatsappNumber}?text=${encodeURIComponent(message)}`
+  }, [units, width, height, profile, fitting, glazing, installation, result.area])
 
   return (
     <section
@@ -63,7 +84,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                   max="30"
                   value={units}
                   onChange={(event) => setUnits(Number(event.target.value) || 1)}
-                  className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
+                  className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
                 />
               </label>
               <label className="text-sm text-[#59635d]">
@@ -76,7 +97,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                   step="0.1"
                   value={width}
                   onChange={(event) => setWidth(Number(event.target.value) || 0.3)}
-                  className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
+                  className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
                 />
               </label>
               <label className="text-sm text-[#59635d]">
@@ -89,7 +110,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                   step="0.1"
                   value={height}
                   onChange={(event) => setHeight(Number(event.target.value) || 0.3)}
-                  className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
+                  className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
                 />
               </label>
             </div>
@@ -152,21 +173,33 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
               )}
             </div>
 
+            {/*
+              min-h-12 + w-full вместо h-12 flex-1: внутри flex-col у flex-1 стоит
+              flex-basis: 0 в вертикальной оси, и кнопка схлопывалась до 20px.
+            */}
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
                 onClick={onOrder}
-                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#173d35] px-5 text-sm font-semibold !text-[#f7f4ee] hover:bg-[#24594c]"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#173d35] px-5 text-sm font-semibold !text-[#f7f4ee] hover:bg-[#24594c] sm:w-auto sm:flex-1"
               >
                 Получить точный расчёт <Send size={16} />
               </button>
               <a
-                href="#how-it-works"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#173d35]/20 px-5 text-sm font-medium text-[#173d35]"
+                href={whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[#173d35]/25 px-5 text-sm font-medium text-[#173d35] hover:bg-[#e6eee8] sm:w-auto"
               >
-                Как это работает
+                <MessageCircle size={16} /> Расчёт в WhatsApp
               </a>
             </div>
+            <a
+              className="mt-4 inline-block text-xs font-medium text-[#173d35] underline underline-offset-4"
+              href="#how-it-works"
+            >
+              Как проходит замер и монтаж
+            </a>
           </div>
         </div>
       </div>
@@ -191,7 +224,7 @@ function SelectField({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-12 w-full appearance-none rounded-xl border border-black/10 bg-white px-3 pr-9 text-sm font-medium text-[#202522] outline-none focus:ring-2 focus:ring-[#173d35]"
+        className="mt-2 h-12 w-full appearance-none rounded-xl border border-black/15 bg-white px-3 pr-9 text-sm font-medium text-[#202522] outline-none focus:ring-2 focus:ring-[#173d35]"
       >
         {options.map((option) => (
           <option key={option.id} value={option.id}>

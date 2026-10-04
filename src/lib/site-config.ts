@@ -72,5 +72,9 @@ export const CONTACT = {
   email: 'plastmontag_2010@mail.ru',
   address: 'Астана, проспект Республики, 56/2а',
   mapUrl: 'https://2gis.kz/astana/firm/70000001042561575',
+  // Галерея работ в карточке компании — единственный подтверждённый источник реальных фото.
+  mapPhotosUrl: 'https://2gis.kz/astana/gallery/firm/70000001042561575',
+  // Профиль указан в карточке 2GIS; на дату проверки instagram.com/spf01002 отвечает 200.
+  instagramUrl: 'https://www.instagram.com/spf01002',
   mapUpdatedAt: 'октябрь 2026',
 } as const

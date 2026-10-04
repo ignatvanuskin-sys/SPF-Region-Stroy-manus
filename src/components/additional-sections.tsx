@@ -1,11 +1,13 @@
 import {
   ArrowUpRight,
+  Camera,
   Check,
   ChevronDown,
   DoorOpen,
   LayoutGrid,
   Mail,
   MapPin,
+  MessageCircle,
   Ruler,
   Sparkles,
 } from 'lucide-react'
@@ -88,6 +90,22 @@ const faq = [
     q: 'Как согласуется время замера?',
     a: 'Вы выбираете желаемую дату и удобную половину дня. Это пожелание, а точное время менеджер подтверждает по телефону или в WhatsApp.',
   },
+  {
+    q: 'Почему на сайте нет цен?',
+    a: 'Одинаковые на вид окна отличаются в цене в разы — разница в комплектации и монтаже, а не в «окне». Поэтому мы не ставим усреднённую цифру, а считаем по вашим параметрам и объясняем, из чего складывается сумма. Пришлите размеры и фото в WhatsApp — расчёт подготовим по вашей задаче.',
+  },
+  {
+    q: 'Можно приехать в офис?',
+    a: 'Да. Мы находимся в Астане, проспект Республики, 56/2а, район Сарыарка. Маршрут, вход и актуальные часы работы указаны в карточке 2GIS — там же фотографии и отзывы.',
+  },
+  {
+    q: 'Работаете только с квартирами?',
+    a: 'Нет. Помимо квартир и частных домов работаем с коммерческими объектами: фасадные витражи, входные группы, остекление для офисов. Опишите объект в заявке — подскажем подходящее решение.',
+  },
+  {
+    q: 'Неудобно разговаривать по телефону — что делать?',
+    a: 'Выберите в заявке удобное время или сразу напишите в WhatsApp: сообщение придёт менеджеру с параметрами вашего объекта, и отвечать можно текстом.',
+  },
 ]
 
 export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) => void }) {
@@ -143,7 +161,83 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
         </div>
       </section>
 
-      <PriceCalculator onOrder={() => onOrder()} />
+        <PriceCalculator onOrder={() => onOrder()} />
+
+      <section
+        id="price"
+        className="border-y border-black/8 bg-[#f7f4ee] px-5 py-16 sm:px-8 lg:px-12 lg:py-20"
+      >
+        <div className="mx-auto grid max-w-[1240px] gap-10 lg:grid-cols-2 lg:gap-16">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Про цену честно</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-4xl">
+              Мы не пишем «окно от 30 000 ₸». И вот почему.
+            </h2>
+            <p className="mt-4 max-w-xl text-base leading-7 text-[#66716a]">
+              Одинаковые на вид окна отличаются в цене в разы — и почти всегда разница не в самом
+              окне, а в комплектации и монтаже. Поэтому вместо усреднённой цифры мы считаем по вашим
+              параметрам и объясняем, из чего складывается сумма.
+            </p>
+            <ul className="mt-6 grid gap-3 text-sm text-[#59635d]">
+              {[
+                'Размер, количество створок и тип открывания',
+                'Профиль: металлопластик или алюминий',
+                'Стеклопакет: камерность и энергосбережение',
+                'Фурнитура, откосы, подоконник и монтаж',
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-3 rounded-2xl bg-white p-4">
+                  <Check size={16} className="mt-0.5 shrink-0 text-[#173d35]" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <a
+                href={`https://wa.me/${CONTACT.whatsappNumber}?text=${encodeURIComponent('Здравствуйте! Хочу узнать стоимость. Параметры объекта: ')}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#173d35] px-6 text-sm font-semibold !text-[#f7f4ee] hover:bg-[#24594c]"
+              >
+                <MessageCircle size={17} /> Прислать параметры в WhatsApp
+              </a>
+              <button
+                type="button"
+                onClick={() => onOrder()}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#173d35]/20 px-6 text-sm font-medium text-[#173d35] hover:bg-white"
+              >
+                Оставить заявку
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Что выбрать</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-4xl">
+              Металлопластик или алюминий?
+            </h2>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-black/8 bg-white p-5">
+                <p className="text-lg font-semibold text-[#173d35]">Металлопластик</p>
+                <p className="mt-2 text-sm leading-6 text-[#66716a]">
+                  Тёплый профиль для квартир и жилых домов: держит тепло и уличный шум, подходит для
+                  стандартных и нестандартных проёмов.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-black/8 bg-white p-5">
+                <p className="text-lg font-semibold text-[#173d35]">Алюминий</p>
+                <p className="mt-2 text-sm leading-6 text-[#66716a]">
+                  Тонкие прочные рамы и большие площади остекления: фасадные витражи, входные группы,
+                  панорамные конструкции для коммерческих объектов.
+                </p>
+              </div>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-[#66716a]">
+              Не уверены, что подойдёт именно вам? Опишите объект — подскажем вариант и объясним
+              разницу на вашем примере, без навязывания более дорогого решения.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section
         id="how-it-works"
@@ -243,9 +337,14 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
               <span className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-4 py-2">
                 <Check size={15} className="text-[#173d35]" /> 43 отзыва
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-4 py-2">
-                <Check size={15} className="text-[#173d35]" /> 26 фото
-              </span>
+              <a
+                className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-4 py-2 underline underline-offset-4"
+                href={CONTACT.mapPhotosUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Check size={15} className="text-[#173d35]" /> 26 фото работ
+              </a>
             </div>
           </div>
           <div className="flex flex-col justify-center gap-3 sm:flex-row lg:flex-col">
@@ -300,6 +399,30 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                 <span>
                   <span className="block text-xs text-[#846536]">Email</span>
                   <span className="font-semibold text-[#173d35]">{CONTACT.email}</span>
+                </span>
+              </a>
+              <a
+                href={`https://wa.me/${CONTACT.whatsappNumber}?text=${encodeURIComponent('Здравствуйте! Пишу с сайта СПФ Регион Строй.')}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
+              >
+                <MessageCircle size={19} className="text-[#b18b52]" />
+                <span>
+                  <span className="block text-xs text-[#846536]">WhatsApp</span>
+                  <span className="font-semibold text-[#173d35]">{CONTACT.phone}</span>
+                </span>
+              </a>
+              <a
+                href={CONTACT.instagramUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
+              >
+                <Camera size={19} className="text-[#b18b52]" />
+                <span>
+                  <span className="block text-xs text-[#846536]">Instagram</span>
+                  <span className="font-semibold text-[#173d35]">@spf01002</span>
                 </span>
               </a>
             </div>
