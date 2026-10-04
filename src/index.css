@@ -26,7 +26,7 @@
   --primary: #173d35;
   --primary-foreground: #f7f4ee;
   --muted: #e9e5dc;
-  --muted-foreground: #6d756f;
+  --muted-foreground: #66716a;
   --border: #dedbd2;
   --ring: #b18b52;
 }
@@ -41,10 +41,20 @@ body {
   font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
-button, a { -webkit-tap-highlight-color: transparent; }
-button:disabled { cursor: not-allowed; opacity: .55; }
+/*
+  Базовые стили элементов живут внутри @layer base. Вне слоя они перебивали бы
+  Tailwind-утилиты (нелейерное правило сильнее слоёв), и, например, text-white на
+  ссылке просто не применялся — из-за этого кнопки на тёмном фоне становились
+  невидимыми. Это и была причина жалобы «кнопки теряются на фоне».
+*/
+@layer base {
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button:disabled { cursor: not-allowed; opacity: .55; }
+  a { color: inherit; text-decoration: none; }
+}
+
+/* Фокус оставляем вне слоёв: он должен быть виден всегда. */
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
-a { color: inherit; text-decoration: none; }
 
 /*
   Внимание: конечный кадр — transform: none, а не translateY(0).
@@ -61,7 +71,49 @@ a { color: inherit; text-decoration: none; }
   animation: page-reveal 680ms cubic-bezier(.22, 1, .36, 1) both;
 }
 
+/* Якоря не должны прятаться под фиксированной шапкой (89px на десктопе, 77px на телефоне). */
+[id] { scroll-margin-top: 6rem; }
+
+/*
+  Блокировка прокрутки при открытом мобильном меню. Блокировать только body мало:
+  скроллером является html, и страница продолжает ехать под меню.
+*/
+html.menu-open, html.menu-open body { overflow: hidden; }
+
+/* Вопросы FAQ — крупные тап-таргеты, а не строка текста высотой 24px. */
+summary { padding-block: 0.75rem; }
+
+/*
+  Появление секций при скролле. Скрытое состояние включается только после того,
+  как JS поставил html.reveal-ready: без JS содержимое остаётся видимым.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-ready [data-reveal] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 620ms cubic-bezier(.22, 1, .36, 1),
+      transform 620ms cubic-bezier(.22, 1, .36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  .reveal-ready [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Движение карточек при наведении: короткое и спокойное (150–300 мс). */
+.card-lift {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px -22px rgba(23, 61, 53, .45);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .page-enter { animation: none; }
+  .reveal-ready [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .card-lift:hover { transform: none; box-shadow: none; }
 }

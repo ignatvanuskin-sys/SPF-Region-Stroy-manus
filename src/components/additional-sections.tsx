@@ -150,11 +150,11 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                   </span>
                 </div>
                 <h3 className="mt-8 text-lg font-semibold text-[#173d35]">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[#6d756f]">{text}</p>
+                <p className="mt-2 text-sm leading-6 text-[#66716a]">{text}</p>
                 <button
                   type="button"
                   onClick={() => onOrder(preset)}
-                  className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-[#173d35]"
+                  className="mt-5 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-[#173d35]"
                 >
                   {cta} <ArrowUpRight size={15} />
                 </button>
@@ -301,7 +301,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                     <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#846536]">
                       {item.object} · {item.city} · {item.date}
                     </p>
-                    <dl className="mt-4 space-y-2 text-sm leading-6 text-[#6d756f]">
+                    <dl className="mt-4 space-y-2 text-sm leading-6 text-[#66716a]">
                       <div>
                         <dt className="font-semibold text-[#173d35]">Задача</dt>
                         <dd>{item.task}</dd>
@@ -469,7 +469,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                 href={CONTACT.mapUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#b18b52] px-5 text-sm font-semibold !text-[#fffdf9]"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#b18b52] px-5 text-sm font-semibold !text-[#14201c] transition-colors hover:bg-[#c39a5d]"
               >
                 Открыть маршрут <ArrowUpRight size={16} />
               </a>
@@ -502,7 +502,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                   className="shrink-0 transition-transform group-open:rotate-180"
                 />
               </summary>
-              <p className="max-w-2xl pt-3 text-sm leading-6 text-[#6d756f]">{item.a}</p>
+              <p className="max-w-2xl pt-3 text-sm leading-6 text-[#66716a]">{item.a}</p>
             </details>
           ))}
         </div>
@@ -510,7 +510,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
 
       <section id="privacy" className="mx-auto max-w-[900px] px-5 pb-16 sm:px-8 lg:pb-24">
         <h2 className="text-lg font-semibold text-[#173d35]">Обработка персональных данных</h2>
-        <p className="mt-3 text-sm leading-6 text-[#6d756f]">
+        <p className="mt-3 text-sm leading-6 text-[#66716a]">
           Имя, телефон, адрес объекта, комментарий и фотографии, которые вы оставляете в форме,
           используются только для подготовки расчёта и согласования замера. Данные передаются в
           CRM-систему, которая обрабатывает заявки компании, и не передаются третьим лицам для

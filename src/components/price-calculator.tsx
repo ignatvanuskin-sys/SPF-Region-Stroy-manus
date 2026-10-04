@@ -211,7 +211,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
               </a>
             </div>
             <a
-              className="mt-4 inline-block text-xs font-medium text-[#173d35] underline underline-offset-4"
+              className="mt-4 inline-flex min-h-11 items-center text-sm font-medium text-[#173d35] underline underline-offset-4"
               href="#how-it-works"
             >
               Как проходит замер и монтаж

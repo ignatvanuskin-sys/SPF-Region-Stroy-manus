@@ -223,7 +223,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                 </p>
                 {photo && <p className="mt-2">Фото «{photo.name}» приложено к заявке.</p>}
                 {result?.leadId && (
-                  <p className="mt-2 text-xs text-[#6d756f]">Номер заявки: {result.leadId}</p>
+                  <p className="mt-2 text-xs text-[#66716a]">Номер заявки: {result.leadId}</p>
                 )}
               </div>
               <div className="mt-6 flex flex-col gap-3">
@@ -600,6 +600,7 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [screen, setScreen] = useState<'home' | 'order'>('home')
   const [preset, setPreset] = useState<Service>()
+  const [scrolled, setScrolled] = useState(false)
 
   const openOrder = (service?: Service) => {
     track('cta_click', { cta: 'order', service: service ?? 'none' })
@@ -640,11 +641,56 @@ function App() {
     return () => document.removeEventListener('click', onClick)
   }, [])
 
+  // При открытом мобильном меню фон не должен уезжать под ним. Класс ставим на html:
+  // скроллер — именно html, блокировки одного body недостаточно.
+  useEffect(() => {
+    document.documentElement.classList.toggle('menu-open', menuOpen)
+    return () => document.documentElement.classList.remove('menu-open')
+  }, [menuOpen])
+
+  // Состояние «страница прокручена»: у шапки появляется тень и плотный фон.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  /*
+    Появление секций при скролле. Секции помечает сам JS, поэтому без него
+    содержимое остаётся видимым — анимация не может «съесть» контент.
+  */
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const targets = Array.from(
+      document.querySelectorAll<HTMLElement>('main section:not(#top)'),
+    ).filter((element) => !element.classList.contains('is-visible'))
+    if (!targets.length) return
+
+    document.documentElement.classList.add('reveal-ready')
+    targets.forEach((element) => element.setAttribute('data-reveal', ''))
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return
+          entry.target.classList.add('is-visible')
+          observer.unobserve(entry.target)
+        })
+      },
+      // threshold 0 и небольшой отрицательный отступ: появление не запаздывает
+      // на высоких секциях (иначе, например, калькулятор открывался с задержкой).
+      { rootMargin: '0px 0px -6% 0px', threshold: 0 },
+    )
+    targets.forEach((element) => observer.observe(element))
+    return () => observer.disconnect()
+  }, [])
+
   if (screen === 'order') return <OrderFlow initialService={preset} onBack={() => setScreen('home')} />
 
   return (
     <>
-      <main className="page-enter min-h-screen overflow-x-hidden bg-[#f4f1eb] pb-20 text-[#202522] md:pb-0">
+      <main className="min-h-screen overflow-x-hidden bg-[#f4f1eb] pb-20 text-[#202522] md:pb-0">
       <section
         id="top"
         className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-[#0b1a16]"
@@ -678,7 +724,18 @@ function App() {
           и очень светлые участки (контраст с тёмным текстом 7,6:1), и очень тёмные (1,1:1),
           поэтому ни белый, ни тёмный текст не читается по всей ширине без подложки.
         */}
-        <header className="relative z-20 border-b border-black/10 bg-[#f4f1eb]/92 backdrop-blur-md">
+        {/*
+          Шапка фиксированная: меню должно ехать за скролом. Раньше она была в потоке
+          и уходила вверх вместе с первым экраном. page-enter с <main> снят — transform
+          предка ломал бы position: fixed.
+        */}
+        <header
+          className={`fixed inset-x-0 top-0 z-40 border-b backdrop-blur-md transition-[background-color,box-shadow,border-color] duration-300 ${
+            scrolled
+              ? 'border-black/10 bg-[#f4f1eb]/97 shadow-[0_14px_34px_-22px_rgba(23,61,53,.45)]'
+              : 'border-black/5 bg-[#f4f1eb]/92'
+          }`}
+        >
         <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-4 sm:px-8 lg:px-12">
           <a href="#top" className="flex items-center gap-3" aria-label="СПФ Регион Строй — на главную">
             <img
@@ -833,7 +890,7 @@ function App() {
             <CardContent className="p-6">
               <Ruler className="mb-5 text-[#b18b52]" size={24} />
               <h2 className="text-lg font-semibold text-[#173d35]">Окна по размеру</h2>
-              <p className="mt-2 text-sm leading-6 text-[#6d756f]">
+              <p className="mt-2 text-sm leading-6 text-[#66716a]">
                 Пластиковые и алюминиевые окна для жилых и коммерческих помещений.
               </p>
             </CardContent>
@@ -842,7 +899,7 @@ function App() {
             <CardContent className="p-6">
               <ShieldCheck className="mb-5 text-[#b18b52]" size={24} />
               <h2 className="text-lg font-semibold text-[#173d35]">Конструкции и двери</h2>
-              <p className="mt-2 text-sm leading-6 text-[#6d756f]">
+              <p className="mt-2 text-sm leading-6 text-[#66716a]">
                 Решения для входных групп, фасадов и офисных пространств.
               </p>
             </CardContent>
@@ -851,7 +908,7 @@ function App() {
             <CardContent className="p-6">
               <MessageCircle className="mb-5 text-[#b18b52]" size={24} />
               <h2 className="text-lg font-semibold text-[#173d35]">Расчёт в WhatsApp</h2>
-              <p className="mt-2 text-sm leading-6 text-[#6d756f]">
+              <p className="mt-2 text-sm leading-6 text-[#66716a]">
                 Отправьте задачу — специалист уточнит параметры и подготовит расчёт.
               </p>
             </CardContent>
@@ -889,7 +946,7 @@ function App() {
             <button
               type="button"
               onClick={() => openOrder()}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#b18b52] px-7 text-sm font-semibold text-[#fffdf9] hover:bg-[#c39a5d]"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#b18b52] px-7 text-sm font-semibold text-[#14201c] transition-colors hover:bg-[#c39a5d]"
             >
               Получить расчёт <ArrowUpRight size={17} />
             </button>
@@ -913,7 +970,7 @@ function App() {
 
       <footer
         id="contacts"
-        className="mx-auto flex max-w-[1240px] flex-col gap-4 px-5 py-8 text-sm text-[#6d756f] sm:px-8 lg:px-12"
+        className="mx-auto flex max-w-[1240px] flex-col gap-4 px-5 py-8 text-sm text-[#66716a] sm:px-8 lg:px-12"
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -924,19 +981,19 @@ function App() {
             <p className="mt-1">Пн–Сб 09:00–19:00 · воскресенье — выходной</p>
           </div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <a className="font-medium text-[#173d35]" href={CONTACT.phoneHref}>
+            <a className="inline-flex min-h-11 items-center font-medium text-[#173d35]" href={CONTACT.phoneHref}>
               {CONTACT.phone}
             </a>
-            <a className="font-medium text-[#173d35]" href={whatsappHref} target="_blank" rel="noreferrer">
+            <a className="inline-flex min-h-11 items-center font-medium text-[#173d35]" href={whatsappHref} target="_blank" rel="noreferrer">
               WhatsApp
             </a>
-            <a className="font-medium text-[#173d35]" href={CONTACT.instagramUrl} target="_blank" rel="noreferrer">
+            <a className="inline-flex min-h-11 items-center font-medium text-[#173d35]" href={CONTACT.instagramUrl} target="_blank" rel="noreferrer">
               Instagram
             </a>
-            <a className="text-[#6d756f] underline underline-offset-2" href={CONTACT.mapUrl} target="_blank" rel="noreferrer">
+            <a className="inline-flex min-h-11 items-center text-[#66716a] underline underline-offset-2" href={CONTACT.mapUrl} target="_blank" rel="noreferrer">
               Карта 2ГИС
             </a>
-            <a className="text-[#6d756f] underline underline-offset-2" href="#privacy">
+            <a className="inline-flex min-h-11 items-center text-[#66716a] underline underline-offset-2" href="#privacy">
               Обработка данных
             </a>
           </div>
@@ -959,7 +1016,7 @@ function App() {
         <button
           type="button"
           onClick={() => openOrder()}
-          className="flex h-12 items-center justify-center gap-2 rounded-xl bg-white/10 text-sm font-medium text-[#f7f4ee]"
+          className="flex h-12 items-center justify-center gap-2 rounded-xl bg-white text-sm font-semibold text-[#14201c] transition-colors hover:bg-[#f0ece4]"
         >
           <Ruler size={17} /> Запись на замер
         </button>
