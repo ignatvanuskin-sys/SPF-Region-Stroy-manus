@@ -358,7 +358,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
           <CardContent className="p-5 sm:p-7">
             <form onSubmit={onSubmit} noValidate>
               {step === 1 && (
-                <div>
+                <div className="step-enter">
                   <p className="text-sm font-semibold text-[#173d35]">Что нужно рассчитать?</p>
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     {SERVICES.map((item) => (
@@ -428,7 +428,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
               )}
 
               {step === 2 && (
-                <div>
+                <div className="step-enter">
                   <p className="text-sm font-semibold text-[#173d35]">Куда нужен выезд?</p>
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Адрес объекта
@@ -477,7 +477,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
               )}
 
               {step === 3 && (
-                <div>
+                <div className="step-enter">
                   <p className="text-sm font-semibold text-[#173d35]">Когда удобно связаться?</p>
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Желаемая дата
@@ -544,7 +544,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
               )}
 
               {step === 4 && (
-                <div>
+                <div className="step-enter">
                   <p className="text-sm font-semibold text-[#173d35]">Куда отправить ответ?</p>
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Имя
@@ -668,7 +668,8 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       className={primaryLink + ' flex-1'}
                       disabled={status === 'sending'}
                     >
-                      {status === 'sending' ? 'Отправляем…' : 'Отправить заявку'}
+                      {status === 'sending' && <span className="spinner" aria-hidden="true" />}
+                      {status === 'sending' ? ('Отправляем…') : 'Отправить заявку'}
                       <ArrowUpRight size={17} />
                     </button>
                   </div>
@@ -796,12 +797,15 @@ function App() {
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const targets = Array.from(
-      document.querySelectorAll<HTMLElement>('main section:not(#top)'),
+      document.querySelectorAll<HTMLElement>('main section:not(#top), main [data-stagger]'),
     ).filter((element) => !element.classList.contains('is-visible'))
     if (!targets.length) return
 
     document.documentElement.classList.add('reveal-ready')
-    targets.forEach((element) => element.setAttribute('data-reveal', ''))
+    targets.forEach((element) => {
+      // data-reveal вешаем только на секции: у stagger-контейнера своя анимация детей.
+      if (element.tagName === 'SECTION') element.setAttribute('data-reveal', '')
+    })
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -1033,7 +1037,7 @@ function App() {
       </section>
 
       <section id="solutions" className="mx-auto max-w-[1240px] px-5 pb-14 sm:px-8 lg:px-12">
-        <div className="grid gap-4 md:grid-cols-3">
+        <div data-stagger className="grid gap-4 md:grid-cols-3">
           <Card className="border-black/8 bg-[#fffdf9] shadow-none">
             <CardContent className="p-6">
               <Ruler className="mb-5 text-[#b18b52]" size={24} />

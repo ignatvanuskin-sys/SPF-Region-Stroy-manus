@@ -1,4 +1,4 @@
-import { ArrowUpRight, MessageCircle, Star } from 'lucide-react'
+﻿import { ArrowUpRight, MessageCircle, Star } from 'lucide-react'
 import { CONTACT } from '@/lib/site-config'
 import { REVIEWS, REVIEWS_RATING, REVIEWS_SOURCE_URL, REVIEWS_TOTAL } from '@/lib/reviews-data'
 import { WORK_PHOTOS } from '@/lib/works-data'
@@ -41,7 +41,7 @@ export function Cases() {
           параметры по запросу.
         </p>
 
-        <div className="mt-8 grid gap-5 lg:grid-cols-3">
+        <div data-stagger className="mt-8 grid gap-5 lg:grid-cols-3">
           {CASES.map((item) => (
             <article key={item.title} className="flex flex-col overflow-hidden rounded-2xl bg-[#f7f4ee] p-4">
               <div className="grid grid-cols-2 gap-2">
@@ -104,7 +104,7 @@ export function Reviews() {
           </a>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div data-stagger className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {REVIEWS.map((review) => (
             <figure key={`${review.author}-${review.date}`} className="flex flex-col rounded-2xl border border-black/8 bg-white p-5">
               <div className="flex items-center gap-2">

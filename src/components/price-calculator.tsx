@@ -1,5 +1,5 @@
-import { Calculator, ChevronDown, MessageCircle, Ruler, Send } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+﻿import { Calculator, ChevronDown, MessageCircle, Ruler, Send } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { track } from '@/lib/analytics'
 import {
   CONTACT,
@@ -11,6 +11,39 @@ import {
 
 const money = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 })
 
+/**
+ * Плавно доводит число до нового значения: при изменении параметров цена
+ * пересчитывается не рывком, а за треть секунды. Уважает prefers-reduced-motion.
+ */
+function useTweenedNumber(value: number, duration = 320) {
+  const [display, setDisplay] = useState(value)
+  const fromRef = useRef(value)
+  const frameRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      fromRef.current = value
+      setDisplay(value)
+      return
+    }
+    const from = fromRef.current
+    const startedAt = performance.now()
+    const step = (now: number) => {
+      const progress = Math.min(1, (now - startedAt) / duration)
+      const eased = 1 - (1 - progress) ** 3
+      setDisplay(Math.round(from + (value - from) * eased))
+      if (progress < 1) frameRef.current = requestAnimationFrame(step)
+      else fromRef.current = value
+    }
+    frameRef.current = requestAnimationFrame(step)
+    return () => {
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
+      fromRef.current = value
+    }
+  }, [value, duration])
+
+  return display
+}
 export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
   const [units, setUnits] = useState(3)
   const [width, setWidth] = useState(1.2)
@@ -38,6 +71,10 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
     const total = construction + install
     return { area, min: Math.round(total * 0.88), max: Math.round(total * 1.12) }
   }, [units, width, height, profile, fitting, glazing, installation])
+
+  // Числа в блоке стоимости «доезжают» до нового значения, а не меняются рывком.
+  const tweenMin = useTweenedNumber(result.min)
+  const tweenMax = useTweenedNumber(result.max)
 
   // Короткий путь «сайт → WhatsApp»: конфигурация уходит менеджеру готовым текстом.
   const whatsappUrl = useMemo(() => {
@@ -170,7 +207,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
               {PRICES_APPROVED ? (
                 <>
                   <p className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[#173d35]">
-                    от {money.format(result.min)} до {money.format(result.max)} ₸
+                    от {money.format(tweenMin)} до {money.format(tweenMax)} ₸
                   </p>
                   <p className="mt-2 text-xs leading-5 text-[#66716a]">
                     Расчёт по вашим параметрам: профиль, фурнитура, стеклопакет

@@ -135,7 +135,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
             </button>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div data-stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {solutions.map(({ title, text, icon: Icon, tag, cta, preset }) => (
               <article
                 key={title}
@@ -261,7 +261,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
               фото и оставить контакты.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div data-stagger className="grid gap-4 sm:grid-cols-3">
             {processSteps.map((item) => (
               <div key={item.n} className="rounded-[1.5rem] bg-[#173d35] p-6 text-[#f7f4ee]">
                 <span className="text-sm text-[#d4b477]">{item.n}</span>
@@ -283,7 +283,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
             <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-5xl">
               Объекты, которые мы уже сделали.
             </h2>
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div data-stagger className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {CASES.map((item) => (
                 <article
                   key={item.title}
@@ -390,7 +390,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
             <p className="mt-5 max-w-md text-base leading-7 text-[#66716a]">
               Адрес и телефон подтверждены открытой карточкой 2GIS.
             </p>
-            <div className="mt-8 grid gap-3">
+            <div data-stagger className="mt-8 grid gap-3">
               <a
                 href={CONTACT.phoneHref}
                 className="flex min-h-24 items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
