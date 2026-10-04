@@ -76,9 +76,10 @@ export type SubmitResult = {
  * Отправляет заявку на backend вместе с файлом фотографии.
  * Успех — только при HTTP 2xx: иначе UI обязан показать ошибку и запасной канал связи.
  */
-export async function submitLead(lead: LeadDraft, photo?: File): Promise<SubmitResult> {
+export async function submitLead(lead: LeadDraft, photo?: File, honeypot = ''): Promise<SubmitResult> {
   const body = new FormData()
-  body.append('payload', JSON.stringify(lead))
+  // `company` — скрытое honeypot-поле: его заполняют только спам-боты.
+  body.append('payload', JSON.stringify({ ...lead, company: honeypot }))
   if (photo) body.append('photo', photo, photo.name)
 
   const controller = new AbortController()

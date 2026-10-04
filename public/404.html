@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,follow" />
+    <title>Страница не найдена — СПФ Регион Строй</title>
+    <link rel="icon" type="image/svg+xml" href="/spf-logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #f4f1eb;
+        --ink: #173d35;
+        --muted: #66716a;
+        --gold: #b18b52;
+        --line: #dedbd2;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: var(--bg);
+        color: #202522;
+        font: 15px/1.6 Inter, 'Helvetica Neue', Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      main {
+        width: 100%;
+        max-width: 560px;
+        background: #fffdf9;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 36px 28px;
+        text-align: center;
+      }
+      .code {
+        font-size: 13px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+      h1 {
+        margin: 12px 0 0;
+        font-size: clamp(1.8rem, 5vw, 2.4rem);
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+        color: var(--ink);
+      }
+      p {
+        margin: 16px 0 0;
+        color: var(--muted);
+      }
+      .actions {
+        margin-top: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 52px;
+        padding: 0 24px;
+        border-radius: 999px;
+        font-weight: 600;
+        text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .primary {
+        background: var(--ink);
+        color: #f7f4ee;
+      }
+      .secondary {
+        border: 1px solid rgba(23, 61, 53, 0.25);
+        color: var(--ink);
+      }
+      a:focus-visible {
+        outline: 3px solid var(--gold);
+        outline-offset: 3px;
+      }
+      @media (min-width: 560px) {
+        .actions {
+          flex-direction: row;
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="code">Ошибка 404</p>
+      <h1>Такой страницы нет</h1>
+      <p>
+        Возможно, адрес изменился или в ссылке опечатка. Вернитесь на главную — там все разделы: окна,
+        двери, фасадные витражи, калькулятор и запись на замер.
+      </p>
+      <div class="actions">
+        <a class="primary" href="/">На главную</a>
+        <a class="secondary" href="/#contacts">Контакты</a>
+      </div>
+    </main>
+  </body>
+</html>

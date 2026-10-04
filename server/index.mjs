@@ -6,11 +6,14 @@ import { randomUUID } from 'node:crypto'
 const PORT = Number(process.env.PORT || 3000)
 const CRM_WEBHOOK_URL = process.env.CRM_WEBHOOK_URL || ''
 const WHATSAPP_PHONE = process.env.WHATSAPP_PHONE || '77018936787'
+const ALLOWED_ORIGIN = (process.env.ALLOWED_ORIGIN || '').trim()
 const DATA_DIR = resolve(process.cwd(), 'server', 'data')
 const UPLOAD_DIR = resolve(DATA_DIR, 'uploads')
 const STATIC_DIR = resolve(process.cwd(), 'dist')
 const MAX_BODY_BYTES = 12 * 1024 * 1024
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
+const RATE_LIMIT_MAX = 5
 
 const MIME_TYPES = {
   '.css': 'text/css; charset=utf-8',
@@ -28,28 +31,62 @@ const MIME_TYPES = {
   '.xml': 'application/xml; charset=utf-8',
 }
 
+// Базовые заголовки безопасности. CORS по умолчанию выключен: фронтенд и API живут на одном домене.
+const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'SAMEORIGIN',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+}
+
+const originHeaders = () => (ALLOWED_ORIGIN ? { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', Vary: 'Origin' } : {})
+
 const json = (response, status, body) => {
   response.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
     'Cache-Control': 'no-store',
+    ...SECURITY_HEADERS,
+    ...originHeaders(),
   })
   response.end(JSON.stringify(body))
 }
 
-const httpError = (message, statusCode) =>
-  Object.assign(new Error(message), { statusCode })
+const httpError = (message, statusCode) => Object.assign(new Error(message), { statusCode })
 
+/** Безопасный decodeURIComponent: некорректный percent-encoding не должен ронять процесс. */
+const safeDecode = (value) => {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return null
+  }
+}
+
+const requestOrigin = (request) => {
+  const host = request.headers['x-forwarded-host'] || request.headers.host || `localhost:${PORT}`
+  const proto = request.headers['x-forwarded-proto'] || 'http'
+  return { host: String(host), url: `${proto}://${host}` }
+}
+
+/**
+ * Читает тело запроса. Если лимит превышен, поток дочитывается до конца
+ * (чтобы не рвать keep-alive соединение), но данные не буферизуются.
+ */
 const readRawBody = async (request, limit) => {
   const chunks = []
   let size = 0
+  let tooLarge = false
+
   for await (const chunk of request) {
     size += chunk.length
-    if (size > limit) throw httpError('Payload is too large', 413)
+    if (size > limit) {
+      tooLarge = true
+      chunks.length = 0
+      continue
+    }
     chunks.push(chunk)
   }
+
+  if (tooLarge) throw httpError('Payload is too large', 413)
   return Buffer.concat(chunks)
 }
 
@@ -103,16 +140,16 @@ const normalizeLead = (input) => {
     id: randomUUID(),
     createdAt: new Date().toISOString(),
     source: 'spf-region-site',
-    name: String(input.name || '').trim(),
-    phone: String(input.phone || '').trim(),
-    service: String(input.service || input.interest || '').trim(),
-    objectType: String(input.objectType || '').trim(),
-    address: String(input.address || '').trim(),
-    openings: String(input.openings || '').trim(),
-    preferredDate: String(input.preferredDate || '').trim(),
-    preferredTime: String(input.preferredTime || '').trim(),
-    priorities: Array.isArray(input.priorities) ? input.priorities.map(String) : [],
-    comment: String(input.comment || '').trim(),
+    name: String(input.name || '').trim().slice(0, 120),
+    phone: String(input.phone || '').trim().slice(0, 32),
+    service: String(input.service || input.interest || '').trim().slice(0, 80),
+    objectType: String(input.objectType || '').trim().slice(0, 40),
+    address: String(input.address || '').trim().slice(0, 200),
+    openings: String(input.openings || '').trim().slice(0, 12),
+    preferredDate: String(input.preferredDate || '').trim().slice(0, 32),
+    preferredTime: String(input.preferredTime || '').trim().slice(0, 32),
+    priorities: Array.isArray(input.priorities) ? input.priorities.slice(0, 8).map((item) => String(item).slice(0, 40)) : [],
+    comment: String(input.comment || '').trim().slice(0, 1500),
     consent: Boolean(input.consent),
     reminderDueAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
   }
@@ -179,24 +216,40 @@ const sendToCrm = async (lead) => {
   return { connected: response.ok, status: `CRM responded with ${response.status}` }
 }
 
-const sendFile = async (response, filePath) => {
+const sendFile = async (response, filePath, status = 200) => {
   const content = await readFile(filePath)
   const immutable = filePath.includes('assets')
-  response.writeHead(200, {
+  response.writeHead(status, {
     'Content-Type': MIME_TYPES[extname(filePath).toLowerCase()] || 'application/octet-stream',
     'Cache-Control': immutable ? 'public, max-age=31536000, immutable' : 'no-cache',
+    ...SECURITY_HEADERS,
   })
   response.end(content)
 }
 
+const serveNotFound = async (response) => {
+  try {
+    const page = resolve(STATIC_DIR, '404.html')
+    const pageInfo = await stat(page)
+    if (pageInfo.isFile()) return sendFile(response, page, 404)
+  } catch {
+    // Если своей страницы нет — отдаём короткий текстовый ответ.
+  }
+  response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', ...SECURITY_HEADERS })
+  response.end('Страница не найдена')
+}
+
 const serveStatic = async (request, response) => {
   const pathname = new URL(request.url || '/', 'http://localhost').pathname
-  const requestedPath = pathname === '/' ? '/index.html' : pathname
-  const filePath = resolve(STATIC_DIR, `.${decodeURIComponent(requestedPath)}`)
+  const decoded = safeDecode(pathname)
+  if (decoded === null) return json(response, 400, { ok: false, error: 'Malformed URL' })
+
+  const requestedPath = decoded === '/' ? '/index.html' : decoded
+  const filePath = resolve(STATIC_DIR, `.${requestedPath}`)
   const fileRelativePath = relative(STATIC_DIR, filePath)
 
   if (fileRelativePath.startsWith('..') || fileRelativePath.includes('..\\') || fileRelativePath.includes('../')) {
-    response.writeHead(403)
+    response.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8', ...SECURITY_HEADERS })
     response.end('Forbidden')
     return
   }
@@ -205,15 +258,55 @@ const serveStatic = async (request, response) => {
     const fileInfo = await stat(filePath)
     if (fileInfo.isFile()) return sendFile(response, filePath)
   } catch {
-    // Дальше отдаём SPA-entrypoint для клиентских маршрутов.
+    // Файла нет — отдаём страницу 404 со статусом 404 (не soft-404).
   }
 
-  if (!extname(pathname)) return sendFile(response, resolve(STATIC_DIR, 'index.html'))
-  response.writeHead(404)
-  response.end('Not found')
+  return serveNotFound(response)
+}
+
+// Клиентских маршрутов у сайта нет, поэтому sitemap и robots собираются из адреса деплоя.
+const serveRobots = (request, response) => {
+  const { url } = requestOrigin(request)
+  response.writeHead(200, { 'Content-Type': MIME_TYPES['.txt'], 'Cache-Control': 'no-cache', ...SECURITY_HEADERS })
+  response.end(`User-agent: *\nAllow: /\n\nSitemap: ${url}/sitemap.xml\n`)
+}
+
+const serveSitemap = (request, response) => {
+  const { url } = requestOrigin(request)
+  response.writeHead(200, { 'Content-Type': MIME_TYPES['.xml'], 'Cache-Control': 'no-cache', ...SECURITY_HEADERS })
+  response.end(
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url>\n    <loc>${url}/</loc>\n    <changefreq>monthly</changefreq>\n    <priority>1.0</priority>\n  </url>\n</urlset>\n`,
+  )
+}
+
+const rateLimitLog = new Map()
+const clientIp = (request) =>
+  String(request.headers['x-forwarded-for'] || '').split(',')[0].trim() || request.socket.remoteAddress || 'unknown'
+
+const isRateLimited = (request) => {
+  const ip = clientIp(request)
+  const now = Date.now()
+  const recent = (rateLimitLog.get(ip) ?? []).filter((stamp) => now - stamp < RATE_LIMIT_WINDOW_MS)
+  recent.push(now)
+  rateLimitLog.set(ip, recent)
+  if (rateLimitLog.size > 5000) rateLimitLog.clear()
+  return recent.length > RATE_LIMIT_MAX
 }
 
 const handleLead = async (request, response) => {
+  const origin = request.headers.origin
+  if (origin) {
+    let originHost = ''
+    try {
+      originHost = new URL(origin).host
+    } catch {
+      throw httpError('Invalid Origin header', 403)
+    }
+    if (originHost !== requestOrigin(request).host) throw httpError('Cross-origin request rejected', 403)
+  }
+
+  if (isRateLimited(request)) throw httpError('Too many requests', 429)
+
   const contentType = request.headers['content-type'] || ''
   const body = await readRawBody(request, MAX_BODY_BYTES)
 
@@ -226,9 +319,25 @@ const handleLead = async (request, response) => {
     const parsed = parseMultipart(body, boundary)
     fields = parsed.fields
     photoFile = parsed.files.find((file) => file.field === 'photo' && file.content.length > 0) ?? null
-    if (typeof fields.payload === 'string') fields = JSON.parse(fields.payload)
+    if (typeof fields.payload === 'string') {
+      try {
+        fields = JSON.parse(fields.payload)
+      } catch {
+        throw httpError('Invalid JSON payload', 400)
+      }
+    }
   } else {
-    fields = JSON.parse(body.toString('utf8') || '{}')
+    try {
+      fields = JSON.parse(body.toString('utf8') || '{}')
+    } catch {
+      throw httpError('Invalid JSON payload', 400)
+    }
+  }
+
+  // Honeypot: скрытое поле заполняют только боты. Отвечаем успехом, но заявку не сохраняем.
+  if (typeof fields.company === 'string' && fields.company.trim()) {
+    console.warn('[lead] honeypot сработал: заявка отброшена')
+    return json(response, 201, { ok: true, leadId: randomUUID(), crm: { connected: false, status: 'dropped' }, photo: null })
   }
 
   const lead = normalizeLead(fields)
@@ -246,9 +355,7 @@ const handleLead = async (request, response) => {
   }
 
   if (!crm.connected) {
-    console.warn(
-      `[lead ${lead.id}] не передан в CRM (${crm.status}). Сохранён в server/data/leads.ndjson.`,
-    )
+    console.warn(`[lead ${lead.id}] не передан в CRM (${crm.status}). Сохранён в server/data/leads.ndjson.`)
   }
 
   return json(response, 201, {
@@ -261,31 +368,38 @@ const handleLead = async (request, response) => {
 }
 
 const server = createServer(async (request, response) => {
-  const pathname = new URL(request.url || '/', 'http://localhost').pathname
+  try {
+    const pathname = new URL(request.url || '/', 'http://localhost').pathname
 
-  if (request.method === 'OPTIONS') return json(response, 204, {})
-  if (request.method === 'GET' && pathname === '/api/health') {
-    return json(response, 200, {
-      ok: true,
-      crmConfigured: Boolean(CRM_WEBHOOK_URL),
-      whatsappConfigured: Boolean(WHATSAPP_PHONE),
-    })
-  }
+    if (request.method === 'OPTIONS') return json(response, 204, {})
 
-  if (request.method === 'POST' && pathname === '/api/leads') {
-    try {
-      return await handleLead(request, response)
-    } catch (error) {
-      const status = error?.statusCode ?? 400
-      console.error(`[lead] ${status}: ${error?.message}`)
-      return json(response, status, { ok: false, error: error?.message ?? 'Unexpected error' })
+    if (pathname === '/api/health') {
+      if (request.method !== 'GET') return json(response, 405, { ok: false, error: 'Method not allowed' })
+      return json(response, 200, {
+        ok: true,
+        crmConfigured: Boolean(CRM_WEBHOOK_URL),
+        whatsappConfigured: Boolean(WHATSAPP_PHONE),
+        rateLimit: `${RATE_LIMIT_MAX}/${RATE_LIMIT_WINDOW_MS / 60000}min`,
+      })
     }
-  }
 
-  if (request.method === 'GET') return serveStatic(request, response)
-  return json(response, 404, { error: 'Not found' })
+    if (pathname === '/api/leads') {
+      if (request.method !== 'POST') return json(response, 405, { ok: false, error: 'Method not allowed' })
+      return await handleLead(request, response)
+    }
+
+    if (request.method === 'GET' && pathname === '/robots.txt') return serveRobots(request, response)
+    if (request.method === 'GET' && pathname === '/sitemap.xml') return serveSitemap(request, response)
+    if (request.method === 'GET') return await serveStatic(request, response)
+
+    return json(response, 404, { ok: false, error: 'Not found' })
+  } catch (error) {
+    // Один плохой запрос не должен ронять сервер.
+    const status = error?.statusCode ?? 500
+    console.error(`[server] ${request.method} ${request.url} -> ${status}: ${error?.message}`)
+    if (response.headersSent) return response.destroy()
+    return json(response, status, { ok: false, error: status === 500 ? 'Server error' : error?.message })
+  }
 })
 
-server.listen(PORT, '0.0.0.0', () =>
-  console.log(`SPF lead API and website listening on http://localhost:${PORT}`),
-)
+server.listen(PORT, '0.0.0.0', () => console.log(`SPF lead API and website listening on http://localhost:${PORT}`))

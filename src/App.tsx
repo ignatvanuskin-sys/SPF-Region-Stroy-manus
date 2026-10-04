@@ -16,7 +16,7 @@ import {
   Upload,
   X,
 } from 'lucide-react'
-import { type FormEvent, useMemo, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import heroImage from '@/assets/spf-hero.webp'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -74,9 +74,11 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
   const [priorities, setPriorities] = useState<string[]>([])
   const [photo, setPhoto] = useState<File>()
   const [consent, setConsent] = useState(false)
+  const [honeypot, setHoneypot] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<SubmitResult | null>(null)
+  const submittingRef = useRef(false)
 
   const draft = useMemo(
     () =>
@@ -153,16 +155,24 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
       return
     }
     if (!validateStep(4)) return
+    // Синхронный guard: два быстрых клика не должны создать две заявки.
+    if (submittingRef.current) return
+    submittingRef.current = true
 
     setStatus('sending')
     saveLeadDraft(draft)
-    const response = await submitLead(draft, photo)
-    if (!response.ok) {
-      // Технические детали оставляем в консоли, пользователю показываем понятный текст.
-      console.error('Lead submit failed:', response.status, response.error)
+
+    try {
+      const response = await submitLead(draft, photo, honeypot)
+      if (!response.ok) {
+        // Технические детали оставляем в консоли, пользователю показываем понятный текст.
+        console.error('Lead submit failed:', response.status, response.error)
+      }
+      setResult(response)
+      setStatus(response.ok ? 'success' : 'error')
+    } finally {
+      submittingRef.current = false
     }
-    setResult(response)
-    setStatus(response.ok ? 'success' : 'error')
   }
 
   if (status === 'success') {
@@ -324,6 +334,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                     <input
                       name="address"
                       autoComplete="street-address"
+                      maxLength={160}
                       value={address}
                       aria-invalid={Boolean(errors.address)}
                       onChange={(event) => setAddress(event.target.value)}
@@ -395,7 +406,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       </button>
                     ))}
                   </div>
-                  <p className="mt-3 text-xs text-[#8b918b]">
+                  <p className="mt-3 text-xs text-[#66716a]">
                     Дата и половина дня — пожелание, точное время подтвердит менеджер.
                   </p>
 
@@ -439,6 +450,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                     <input
                       name="name"
                       autoComplete="name"
+                      maxLength={80}
                       value={name}
                       aria-invalid={Boolean(errors.name)}
                       onChange={(event) => setName(event.target.value)}
@@ -468,6 +480,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                     Комментарий <span className="text-[#9ca39d]">необязательно</span>
                     <textarea
                       name="comment"
+                      maxLength={1000}
                       value={comment}
                       onChange={(event) => setComment(event.target.value)}
                       placeholder="Например: нужно остеклить балкон"
@@ -475,6 +488,17 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       className="mt-2 w-full resize-none rounded-xl border border-black/10 bg-white px-4 py-3 text-[#202522] outline-none placeholder:text-[#9ca39d] focus:ring-2 focus:ring-[#173d35]"
                     />
                   </label>
+
+                  <input
+                    type="text"
+                    name="company"
+                    value={honeypot}
+                    onChange={(event) => setHoneypot(event.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    className="sr-only"
+                  />
 
                   <label className="mt-4 flex cursor-pointer items-start gap-3 text-xs leading-5 text-[#66716a]">
                     <input
@@ -559,6 +583,15 @@ function App() {
     setScreen('order')
   }
 
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [menuOpen])
+
   if (screen === 'order') return <OrderFlow initialService={preset} onBack={() => setScreen('home')} />
 
   return (
@@ -609,13 +642,15 @@ function App() {
             type="button"
             className="rounded-full p-2 text-[#173d35] sm:hidden"
             aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
         {menuOpen && (
-          <div className="border-t border-black/8 px-5 py-4 sm:hidden">
+          <div id="mobile-menu" className="border-t border-black/8 px-5 py-4 sm:hidden">
             <div className="flex flex-col gap-4 text-sm text-[#59635d]">
               <a href="#solutions-detail" onClick={() => setMenuOpen(false)}>
                 Решения
@@ -703,7 +738,7 @@ function App() {
               <Ruler className="mt-1 text-[#b18b52]" size={22} />
             </div>
             {HERO_IMAGE_IS_DEMO && (
-              <p className="mt-3 text-[11px] leading-4 text-[#8b918b]">
+              <p className="mt-3 text-xs leading-5 text-[#59635d]">
                 Демонстрационное изображение — заменим на фото выполненных объектов.
               </p>
             )}
