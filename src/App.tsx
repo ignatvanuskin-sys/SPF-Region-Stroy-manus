@@ -693,7 +693,7 @@ function App() {
           </div>
           <button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-[#173d35] sm:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-[#173d35] lg:hidden"
             aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
@@ -702,8 +702,12 @@ function App() {
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
+        {/*
+          Бургер и панель показываются до 1024px: панель навигации в шапке включается только
+          с lg. Раньше на ширинах 640–1023px не было ни меню, ни навигации вообще.
+        */}
         {menuOpen && (
-          <div id="mobile-menu" className="border-t border-black/8 px-5 py-4 sm:hidden">
+          <div id="mobile-menu" className="border-t border-black/8 px-5 py-4 lg:hidden">
             <div className="flex flex-col gap-4 text-sm text-[#59635d]">
               <a href="#solutions-detail" onClick={() => setMenuOpen(false)}>
                 Решения
@@ -773,7 +777,13 @@ function App() {
               Смотреть отзывы
             </span>
           </a>
-          <p className="mt-4 text-sm text-[#66716a]">{CONTACT.address}</p>
+          <a
+            href="#works"
+            className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[#173d35] underline underline-offset-4"
+          >
+            Смотреть 26 работ
+          </a>
+          <p className="mt-3 text-sm text-[#66716a]">{CONTACT.address}</p>
         </div>
 
         <div className="relative min-h-[420px] overflow-hidden rounded-[2rem] bg-[#d7d4cc] shadow-[0_30px_80px_-35px_rgba(23,61,53,.35)] sm:min-h-[540px]">

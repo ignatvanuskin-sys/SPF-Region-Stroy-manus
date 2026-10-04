@@ -348,7 +348,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                 <Check size={15} className="text-[#173d35]" /> {ENTERPRISE_TYPE}
               </span>
               <a
-                className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-4 py-2 underline underline-offset-4"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#f7f4ee] px-4 underline underline-offset-4"
                 href="#works"
               >
                 <Check size={15} className="text-[#173d35]" /> 26 фото работ
