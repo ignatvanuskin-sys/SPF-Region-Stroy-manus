@@ -17,7 +17,8 @@ import {
   X,
 } from 'lucide-react'
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import heroImage from '@/assets/spf-hero.webp'
+// Hero-изображение — реальная работа компании (фотография из карточки 2ГИС), а не сток.
+const heroImage = '/works/work-01.webp'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { AdditionalSections } from '@/components/additional-sections'
@@ -33,7 +34,6 @@ import {
 } from '@/lib/lead-automation'
 import {
   CONTACT,
-  HERO_IMAGE_IS_DEMO,
   OBJECT_TYPES,
   PRIORITIES,
   SERVICES,
@@ -471,17 +471,23 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
 
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Телефон
-                    <input
-                      name="phone"
-                      type="tel"
-                      inputMode="tel"
-                      autoComplete="tel"
-                      value={phone}
-                      aria-invalid={Boolean(errors.phone)}
-                      onChange={(event) => setPhone(formatPhone(event.target.value))}
-                      placeholder="+7 (701) 000-00-00"
-                      className={fieldClass}
-                    />
+                    {/* Код страны — статичный префикс: так ввод однозначен и маска не искажает номер. */}
+                    <div
+                      className={`${fieldClass} flex items-center gap-2`}
+                    >
+                      <span className="shrink-0 font-medium text-[#59635d]">+7</span>
+                      <input
+                        name="phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        value={phone}
+                        aria-invalid={Boolean(errors.phone)}
+                        onChange={(event) => setPhone(formatPhone(event.target.value))}
+                        placeholder="701 000-00-00"
+                        className="h-full w-full bg-transparent outline-none placeholder:text-[#7d8781]"
+                      />
+                    </div>
                   </label>
                   {errors.phone && <p className={errorClass}>{errors.phone}</p>}
 
@@ -623,6 +629,9 @@ function App() {
             <a className="transition-colors hover:text-[#173d35]" href="#solutions-detail">
               Решения
             </a>
+            <a className="transition-colors hover:text-[#173d35]" href="#works">
+              Работы
+            </a>
             <a className="transition-colors hover:text-[#173d35]" href="#calculator">
               Калькулятор
             </a>
@@ -666,8 +675,14 @@ function App() {
               <a href="#solutions-detail" onClick={() => setMenuOpen(false)}>
                 Решения
               </a>
+              <a href="#works" onClick={() => setMenuOpen(false)}>
+                Наши работы
+              </a>
               <a href="#calculator" onClick={() => setMenuOpen(false)}>
                 Калькулятор
+              </a>
+              <a href="#reviews" onClick={() => setMenuOpen(false)}>
+                Отзывы
               </a>
               <a href="#how-it-works" onClick={() => setMenuOpen(false)}>
                 Как работаем
@@ -695,7 +710,7 @@ function App() {
             variant="outline"
             className="mb-6 rounded-full border-[#b18b52]/40 bg-[#b18b52]/10 px-3 py-1 text-[#846536]"
           >
-            Окна · двери · фасадные витражи
+            Окна · двери · витражи · перегородки
           </Badge>
           <h1 className="max-w-[680px] text-[clamp(2.7rem,7vw,5.7rem)] font-semibold leading-[0.96] tracking-[-0.065em] text-[#173d35]">
             Свет, тепло и тишина — в вашем доме.
@@ -731,17 +746,13 @@ function App() {
         <div className="relative min-h-[420px] overflow-hidden rounded-[2rem] bg-[#d7d4cc] shadow-[0_30px_80px_-35px_rgba(23,61,53,.35)] sm:min-h-[540px]">
           <img
             src={heroImage}
-            alt={
-              HERO_IMAGE_IS_DEMO
-                ? 'Демонстрационное изображение оконной конструкции'
-                : 'Оконная конструкция в интерьере'
-            }
+            alt="Белое металлопластиковое окно, установленное в кирпичном доме — работа СПФ Регион Строй"
             className="absolute inset-0 size-full object-cover"
             loading="eager"
             fetchPriority="high"
             decoding="async"
-            width="900"
-            height="1100"
+            width="1200"
+            height="1600"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#173d35]/70 via-transparent to-transparent" />
           <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/30 bg-[#f7f4ee]/90 p-4 backdrop-blur-md sm:inset-x-7 sm:bottom-7 sm:p-5">
@@ -754,11 +765,6 @@ function App() {
               </div>
               <Ruler className="mt-1 text-[#b18b52]" size={22} />
             </div>
-            {HERO_IMAGE_IS_DEMO && (
-              <p className="mt-3 text-xs leading-5 text-[#59635d]">
-                Демонстрационное изображение — заменим на фото выполненных объектов.
-              </p>
-            )}
           </div>
         </div>
       </section>
@@ -811,19 +817,76 @@ function App() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-[1240px] px-5 pt-16 sm:px-8 lg:px-12 lg:pt-20">
+        <div className="rounded-[2rem] bg-[#173d35] px-6 py-10 text-center sm:px-10 lg:py-14">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#c9a86a]">Последний шаг</p>
+          <h2 className="mx-auto mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.05em] text-[#f7f4ee] sm:text-5xl">
+            Рассчитаем стоимость вашего проекта
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-[#cfd6d1]">
+            Опишите объект — подберём конструкцию, назовём сроки и подготовим расчёт. Консультация ни к чему
+            не обязывает.
+          </p>
+          <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => openOrder()}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#b18b52] px-7 text-sm font-semibold text-[#fffdf9] hover:bg-[#c39a5d]"
+            >
+              Получить расчёт <ArrowUpRight size={17} />
+            </button>
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white/10 px-7 text-sm font-semibold text-[#f7f4ee] hover:bg-white/20"
+            >
+              <MessageCircle size={17} /> WhatsApp
+            </a>
+            <a
+              href={CONTACT.phoneHref}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/25 px-7 text-sm font-semibold text-[#f7f4ee] hover:bg-white/10"
+            >
+              <Phone size={17} /> Позвонить
+            </a>
+          </div>
+        </div>
+      </section>
+
       <footer
         id="contacts"
-        className="mx-auto flex max-w-[1240px] flex-col gap-3 px-5 py-8 text-sm text-[#6d756f] sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-12"
+        className="mx-auto flex max-w-[1240px] flex-col gap-4 px-5 py-8 text-sm text-[#6d756f] sm:px-8 lg:px-12"
       >
-        <span>СПФ Регион Строй · Астана</span>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <a className="font-medium text-[#173d35]" href={CONTACT.phoneHref}>
-            {CONTACT.phone}
-          </a>
-          <a className="text-[#6d756f] underline underline-offset-2" href="#privacy">
-            Обработка данных
-          </a>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="font-semibold text-[#173d35]">СПФ Регион Строй</p>
+            <p className="mt-1">
+              {CONTACT.address}, {CONTACT.district}
+            </p>
+            <p className="mt-1">Пн–Сб 09:00–19:00 · воскресенье — выходной</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <a className="font-medium text-[#173d35]" href={CONTACT.phoneHref}>
+              {CONTACT.phone}
+            </a>
+            <a className="font-medium text-[#173d35]" href={whatsappHref} target="_blank" rel="noreferrer">
+              WhatsApp
+            </a>
+            <a className="font-medium text-[#173d35]" href={CONTACT.instagramUrl} target="_blank" rel="noreferrer">
+              Instagram
+            </a>
+            <a className="text-[#6d756f] underline underline-offset-2" href={CONTACT.mapUrl} target="_blank" rel="noreferrer">
+              Карта 2ГИС
+            </a>
+            <a className="text-[#6d756f] underline underline-offset-2" href="#privacy">
+              Обработка данных
+            </a>
+          </div>
         </div>
+        <p className="text-xs text-[#8a938c]">
+          © {new Date().getFullYear()} ТОО «СПФ Регион Строй». Рейтинг, отзывы и часть фотографий — по данным
+          открытой карточки компании в 2ГИС.
+        </p>
       </footer>
 
       </main>

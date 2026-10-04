@@ -3,6 +3,7 @@ import {
   Camera,
   Check,
   ChevronDown,
+  Clock,
   DoorOpen,
   LayoutGrid,
   Mail,
@@ -12,7 +13,9 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { PriceCalculator } from '@/components/price-calculator'
-import { CASES, CONTACT, type Service } from '@/lib/site-config'
+import { Cases, Reviews } from '@/components/showcase'
+import { WorksGallery } from '@/components/works-gallery'
+import { CASES, CONTACT, ENTERPRISE_TYPE, type Service } from '@/lib/site-config'
 
 const solutions: Array<{
   title: string
@@ -96,7 +99,7 @@ const faq = [
   },
   {
     q: 'Можно приехать в офис?',
-    a: 'Да. Мы находимся в Астане, проспект Республики, 56/2а, район Сарыарка. Маршрут, вход и актуальные часы работы указаны в карточке 2GIS — там же фотографии и отзывы.',
+    a: 'Да. Мы находимся в Астане, проспект Республики, 56/2а, район Сарыарка. Работаем по будням и в субботу с 09:00 до 19:00, воскресенье — выходной. Маршрут и вход указаны в карточке 2ГИС.',
   },
   {
     q: 'Работаете только с квартирами?',
@@ -161,7 +164,11 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
         </div>
       </section>
 
-        <PriceCalculator onOrder={() => onOrder()} />
+        <WorksGallery />
+
+      <Cases />
+
+      <PriceCalculator onOrder={() => onOrder()} />
 
       <section
         id="price"
@@ -192,21 +199,21 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
               ))}
             </ul>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => onOrder()}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#173d35] px-6 text-sm font-semibold !text-[#f7f4ee] hover:bg-[#24594c]"
+              >
+                Рассчитать стоимость <ArrowUpRight size={17} />
+              </button>
               <a
                 href={`https://wa.me/${CONTACT.whatsappNumber}?text=${encodeURIComponent('Здравствуйте! Хочу узнать стоимость. Параметры объекта: ')}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#173d35] px-6 text-sm font-semibold !text-[#f7f4ee] hover:bg-[#24594c]"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#173d35]/25 px-6 text-sm font-medium text-[#173d35] hover:bg-white"
               >
-                <MessageCircle size={17} /> Прислать параметры в WhatsApp
+                <MessageCircle size={17} /> Расчёт в WhatsApp
               </a>
-              <button
-                type="button"
-                onClick={() => onOrder()}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#173d35]/20 px-6 text-sm font-medium text-[#173d35] hover:bg-white"
-              >
-                Оставить заявку
-              </button>
             </div>
           </div>
 
@@ -337,11 +344,12 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
               <span className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-4 py-2">
                 <Check size={15} className="text-[#173d35]" /> 43 отзыва
               </span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-4 py-2">
+                <Check size={15} className="text-[#173d35]" /> {ENTERPRISE_TYPE}
+              </span>
               <a
                 className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-4 py-2 underline underline-offset-4"
-                href={CONTACT.mapPhotosUrl}
-                target="_blank"
-                rel="noreferrer"
+                href="#works"
               >
                 <Check size={15} className="text-[#173d35]" /> 26 фото работ
               </a>
@@ -367,6 +375,8 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
         </div>
       </section>
 
+      <Reviews />
+
       <section
         id="contact-details"
         className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:px-12 lg:py-24"
@@ -391,6 +401,24 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                   <span className="font-semibold text-[#173d35]">{CONTACT.phone}</span>
                 </span>
               </a>
+              <a
+                href={CONTACT.phone2Href}
+                className="flex items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
+              >
+                <PhoneIcon />
+                <span>
+                  <span className="block text-xs text-[#846536]">Дополнительный номер</span>
+                  <span className="font-semibold text-[#173d35]">{CONTACT.phone2}</span>
+                </span>
+              </a>
+              <div className="flex items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4">
+                <Clock size={19} className="text-[#b18b52]" />
+                <span>
+                  <span className="block text-xs text-[#846536]">График работы</span>
+                  <span className="block font-semibold text-[#173d35]">Пн–Сб 09:00–19:00</span>
+                  <span className="block text-xs text-[#66716a]">Воскресенье — выходной</span>
+                </span>
+              </div>
               <a
                 href={`mailto:${CONTACT.email}`}
                 className="flex items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"

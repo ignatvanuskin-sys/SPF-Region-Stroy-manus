@@ -27,6 +27,8 @@ export function createLeadDraft(
 ): LeadDraft {
   return {
     ...input,
+    // В поле хранится только локальная часть, в заявку уходит номер целиком.
+    phone: toFullPhone(input.phone),
     id: `spf-${Date.now()}`,
     createdAt: new Date().toISOString(),
     source: 'website-order-flow',
@@ -121,27 +123,41 @@ export async function submitLead(lead: LeadDraft, photo?: File, honeypot = ''): 
   }
 }
 
-/** Маска казахстанского номера: +7 (701) 893-67-87 */
+/**
+ * Маска локальной части казахстанского номера: «701 893-67-87».
+ *
+ * Код страны «+7» показывается отдельным статичным префиксом поля и в само значение не входит.
+ * Так ввод становится однозначным: раньше, когда код страны был внутри значения, а казахстанские
+ * номера сами начинаются с 7 (701…) или вводятся с 8, номер искажался — например «7018936787»
+ * превращалось в «+7 (018) 936-78-7», а посимвольный набор «87018936787» — в «+7 (770) 189-36-78».
+ */
 export function formatPhone(value: string) {
   let digits = value.replace(/\D/g, '')
   if (!digits) return ''
-  if (digits.startsWith('8')) digits = `7${digits.slice(1)}`
-  if (!digits.startsWith('7')) digits = `7${digits}`
-  digits = digits.slice(0, 11)
 
-  const rest = digits.slice(1)
-  let out = '+7'
-  if (rest.length) out += ` (${rest.slice(0, 3)}`
-  if (rest.length >= 3) out += ')'
-  if (rest.length > 3) out += ` ${rest.slice(3, 6)}`
-  if (rest.length > 6) out += `-${rest.slice(6, 8)}`
-  if (rest.length > 8) out += `-${rest.slice(8, 10)}`
-  return out
+  // Больше 10 цифр — значит номер пришёл целиком (вставка или набор с кодом страны).
+  // Убираем код страны: 8 (местный набор) или 7 (международный).
+  if (digits.length > 10 && (digits.startsWith('8') || digits.startsWith('7'))) {
+    digits = digits.slice(1)
+  }
+  digits = digits.slice(0, 10)
+
+  if (digits.length <= 3) return digits
+  if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`
+  if (digits.length <= 8) return `${digits.slice(0, 3)} ${digits.slice(3, 6)}-${digits.slice(6)}`
+  return `${digits.slice(0, 3)} ${digits.slice(3, 6)}-${digits.slice(6, 8)}-${digits.slice(8, 10)}`
 }
 
+/** Полный номер для заявки: +7 (701) 893-67-87 */
+export function toFullPhone(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 10)
+  if (digits.length !== 10) return value.trim()
+  return `+7 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 8)}-${digits.slice(8, 10)}`
+}
+
+/** В поле хранится локальная часть без кода страны — значит, нужно ровно 10 цифр. */
 export function isPhoneComplete(value: string) {
-  const digits = value.replace(/\D/g, '')
-  return digits.length === 11 && digits.startsWith('7')
+  return value.replace(/\D/g, '').length === 10
 }
 
 export function isValidName(value: string) {

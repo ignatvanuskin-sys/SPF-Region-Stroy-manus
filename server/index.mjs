@@ -218,7 +218,7 @@ const sendToCrm = async (lead) => {
 
 const sendFile = async (response, filePath, status = 200) => {
   const content = await readFile(filePath)
-  const immutable = filePath.includes('assets')
+  const immutable = filePath.includes('assets') || filePath.includes('works')
   response.writeHead(status, {
     'Content-Type': MIME_TYPES[extname(filePath).toLowerCase()] || 'application/octet-stream',
     'Cache-Control': immutable ? 'public, max-age=31536000, immutable' : 'no-cache',

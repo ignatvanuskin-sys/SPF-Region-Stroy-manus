@@ -7,8 +7,8 @@
  */
 export const PRICES_APPROVED = false
 
-/** Hero-изображение — демонстрационный визуал, а не фото реального объекта. */
-export const HERO_IMAGE_IS_DEMO = true
+/** Hero-изображение — реальная работа компании (фотография из карточки 2ГИС). */
+export const HERO_IMAGE_IS_DEMO = false
 
 /** Профили и опции калькулятора, подтверждённые ассортиментом компании. */
 export const PROFILE_OPTIONS = [
@@ -34,10 +34,11 @@ export const GLAZING_OPTIONS = [
 // Не подтверждено: { id: 'noise', label: 'Шумозащитный', rate: 1.18 },
 
 /**
- * Услуги, которые компания готова публично заявлять.
- * «Перегородки» не подтверждены полной карточкой СПФ — добавлять только после подтверждения.
+ * Услуги, подтверждённые карточкой компании в 2ГИС:
+ * рубрики «Окна», «Входные двери», «Перегородки»; в описании — фасадные витражи,
+ * окна из металлопластика и алюминия. Тип предприятия — «Производство».
  */
-export const SERVICES = ['Окна', 'Двери', 'Фасадные витражи'] as const
+export const SERVICES = ['Окна', 'Двери', 'Фасадные витражи', 'Перегородки'] as const
 export type Service = (typeof SERVICES)[number]
 
 export type ObjectType = 'Квартира' | 'Дом' | 'Бизнес'
@@ -68,13 +69,27 @@ export const CASES: CaseStudy[] = []
 export const CONTACT = {
   phone: '+7 701 893 67 87',
   phoneHref: 'tel:+77018936787',
+  // Второй номер указан в карточке компании в 2ГИС.
+  phone2: '+7 701 177 60 90',
+  phone2Href: 'tel:+77011776090',
   whatsappNumber: '77018936787',
   email: 'plastmontag_2010@mail.ru',
   address: 'Астана, проспект Республики, 56/2а',
+  district: 'район Сарыарка',
   mapUrl: 'https://2gis.kz/astana/firm/70000001042561575',
-  // Галерея работ в карточке компании — единственный подтверждённый источник реальных фото.
+  // Галерея работ в карточке компании — подтверждённый источник реальных фото.
   mapPhotosUrl: 'https://2gis.kz/astana/gallery/firm/70000001042561575',
-  // Профиль указан в карточке 2GIS; на дату проверки instagram.com/spf01002 отвечает 200.
+  reviewsUrl: 'https://2gis.kz/astana/firm/70000001042561575/reviews',
+  // Профиль указан в карточке 2ГИС; на дату проверки instagram.com/spf01002 отвечает 200.
   instagramUrl: 'https://www.instagram.com/spf01002',
   mapUpdatedAt: 'октябрь 2026',
 } as const
+
+/** График работы из карточки компании в 2ГИС. */
+export const OPENING_HOURS = [
+  { days: 'Понедельник — суббота', hours: '09:00–19:00' },
+  { days: 'Воскресенье', hours: 'выходной' },
+] as const
+
+/** Тип предприятия по данным карточки 2ГИС. */
+export const ENTERPRISE_TYPE = 'Розница · Производство · Опт'
