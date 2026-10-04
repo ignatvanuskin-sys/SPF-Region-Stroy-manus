@@ -38,3 +38,4 @@ _qa*.js
 qa_*.js
 measure*.js
 
+probe_*.js

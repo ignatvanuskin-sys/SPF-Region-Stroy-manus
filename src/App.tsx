@@ -56,6 +56,61 @@ const errorClass = 'mt-2 text-xs leading-5 text-[#b91c1c]'
 // Год считаем один раз при загрузке модуля: вызов Date внутри рендера — нечистая функция.
 const COPYRIGHT_YEAR = new Date().getFullYear()
 
+/**
+ * Плавная прокрутка к секции с управляемой длительностью и мягким ускорением.
+ * Нативный scroll-behavior: smooth проходит длинные расстояния слишком быстро и
+ * читается как рывок, поэтому анимируем сами.
+ */
+function smoothScrollTo(target: HTMLElement) {
+  const headerOffset = 88
+  const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
+  // Всегда считаем цель от текущей позиции: пока грузятся изображения, вёрстка может сдвинуться.
+  const targetY = () =>
+    Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset)
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.scrollTo(0, targetY())
+    return
+  }
+
+  const startY = window.scrollY
+  const distance = targetY() - startY
+  if (Math.abs(distance) < 8) return
+
+  const duration = Math.min(1100, Math.max(480, Math.abs(distance) * 0.42))
+  const startedAt = performance.now()
+
+  /*
+    Доводка с несколькими попытками: пока грузятся шрифты и изображения, вёрстка
+    продолжает меняться, и один пересчёт позиции не гарантирует точное приземление.
+  */
+  const correct = (attempts = 6) => {
+    const tick = () => {
+      const correction = targetY() - window.scrollY
+      if (Math.abs(correction) < 3 || attempts <= 0) return
+      attempts -= 1
+      const from = window.scrollY
+      const correctionStart = performance.now()
+      const stepCorrection = (now: number) => {
+        const t = Math.min(1, (now - correctionStart) / 180)
+        window.scrollTo(0, from + correction * easeInOutCubic(t))
+        if (t < 1) requestAnimationFrame(stepCorrection)
+        else window.setTimeout(tick, 130)
+      }
+      requestAnimationFrame(stepCorrection)
+    }
+    window.setTimeout(tick, 130)
+  }
+
+  const step = (now: number) => {
+    const progress = Math.min(1, (now - startedAt) / duration)
+    window.scrollTo(0, startY + distance * easeInOutCubic(progress))
+    if (progress < 1) requestAnimationFrame(step)
+    else correct(6)
+  }
+  requestAnimationFrame(step)
+}
+
 const whatsappHref = `https://wa.me/${CONTACT.whatsappNumber}?text=${encodeURIComponent(
   'Здравствуйте! Хочу узнать стоимость окон.',
 )}`
@@ -601,6 +656,8 @@ function App() {
   const [screen, setScreen] = useState<'home' | 'order'>('home')
   const [preset, setPreset] = useState<Service>()
   const [scrolled, setScrolled] = useState(false)
+  const [headerHidden, setHeaderHidden] = useState(false)
+  const [showBar, setShowBar] = useState(false)
 
   const openOrder = (service?: Service) => {
     track('cta_click', { cta: 'order', service: service ?? 'none' })
@@ -648,12 +705,55 @@ function App() {
     return () => document.documentElement.classList.remove('menu-open')
   }, [menuOpen])
 
-  // Состояние «страница прокручена»: у шапки появляется тень и плотный фон.
+  /*
+    Один обработчик скролла на три задачи:
+    — «страница прокручена» → у шапки плотный фон и тень;
+    — скролл вниз убирает шапку, скролл вверх возвращает её (не мешает читать);
+    — первый экран позади → плавно появляется нижняя панель с кнопками.
+  */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
+    let lastY = window.scrollY
+    const onScroll = () => {
+      const y = window.scrollY
+      setScrolled(y > 24)
+      setShowBar(y > window.innerHeight * 0.55)
+
+      const delta = y - lastY
+      if (y < 140) setHeaderHidden(false)
+      else if (delta > 6) setHeaderHidden(true)
+      else if (delta < -6) setHeaderHidden(false)
+      lastY = y
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
+
+  // Клик по якорю: закрываем меню и прокручиваем плавно, а не рывком.
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      const link = (event.target as HTMLElement | null)?.closest?.(
+        'a[href^="#"]',
+      ) as HTMLAnchorElement | null
+      if (!link) return
+
+      const hash = link.getAttribute('href') ?? ''
+      if (hash.length < 2) return
+
+      const target = document.getElementById(hash.slice(1))
+      if (!target) return
+
+      event.preventDefault()
+      setMenuOpen(false)
+      smoothScrollTo(target)
+      window.history.replaceState(null, '', hash)
+    }
+    document.addEventListener('click', onClick)
+    return () => document.removeEventListener('click', onClick)
   }, [])
 
   /*
@@ -730,18 +830,21 @@ function App() {
           предка ломал бы position: fixed.
         */}
         <header
-          className={`fixed inset-x-0 top-0 z-40 border-b backdrop-blur-md transition-[background-color,box-shadow,border-color] duration-300 ${
+          className={`fixed inset-x-0 top-0 z-40 border-b backdrop-blur-md transition-[background-color,box-shadow,border-color,transform] duration-300 ${
+            headerHidden ? '-translate-y-full' : 'translate-y-0'
+          } ${
             scrolled
               ? 'border-black/10 bg-[#f4f1eb]/97 shadow-[0_14px_34px_-22px_rgba(23,61,53,.45)]'
               : 'border-black/5 bg-[#f4f1eb]/92'
           }`}
         >
-        <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-4 sm:px-8 lg:px-12">
+        {/* py-2 вместо py-4 и логотип 32/36px: шапка стала компактной (была 89px на десктопе). */}
+        <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-2 sm:px-8 lg:px-12">
           <a href="#top" className="flex items-center gap-3" aria-label="СПФ Регион Строй — на главную">
             <img
               src="/spf-logo.svg"
               alt="СПФ Регион Строй — окна и конструкции"
-              className="h-10 w-auto sm:h-11"
+              className="h-8 w-auto sm:h-9"
             />
           </a>
           <nav
@@ -772,7 +875,7 @@ function App() {
               {CONTACT.phone}
             </a>
             <a
-              className={primaryLink + ' h-11 px-5 text-sm shadow-none'}
+              className="inline-flex h-10 items-center justify-center rounded-full bg-[#173d35] px-4 text-sm font-semibold !text-[#f7f4ee] transition-colors hover:bg-[#24594c]"
               href={whatsappHref}
               target="_blank"
               rel="noreferrer"
@@ -782,7 +885,7 @@ function App() {
           </div>
           <button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-[#173d35] lg:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-[#173d35] lg:hidden"
             aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
@@ -795,9 +898,22 @@ function App() {
           Бургер и панель показываются до 1024px: панель навигации в шапке включается только
           с lg. Раньше на ширинах 640–1023px не было ни меню, ни навигации вообще.
         */}
-        {menuOpen && (
-          <div id="mobile-menu" className="border-t border-black/8 px-5 py-4 lg:hidden">
-            <div className="flex flex-col gap-4 text-sm text-[#59635d]">
+        {/*
+          Панель всегда в DOM и раскрывается анимацией max-height — появление плавное,
+          а не мгновенное. Она абсолютная (top-full), поэтому раскрытие не сдвигает
+          страницу и не ломает рассчитанную позицию прокрутки к якорю. inert убирает
+          ссылки из Tab, когда меню закрыто.
+        */}
+        <div
+          id="mobile-menu"
+          inert={!menuOpen}
+          className={`absolute inset-x-0 top-full overflow-hidden border-t bg-[#f4f1eb]/98 backdrop-blur-md transition-[max-height,opacity] duration-300 ease-out lg:hidden ${
+            menuOpen
+              ? 'max-h-[70svh] border-black/8 opacity-100'
+              : 'max-h-0 border-transparent opacity-0'
+          }`}
+        >
+          <div className="flex flex-col gap-4 px-5 py-4 text-sm text-[#59635d]">
               <a href="#solutions-detail" onClick={() => setMenuOpen(false)}>
                 Решения
               </a>
@@ -822,9 +938,8 @@ function App() {
               <a className="font-semibold text-[#173d35]" href={CONTACT.phoneHref}>
                 {CONTACT.phone}
               </a>
-            </div>
           </div>
-        )}
+        </div>
       </header>
 
         {/* pb на мобильном больше: липкая CTA-панель (66px + отступ) не должна перекрывать
@@ -1012,7 +1127,11 @@ function App() {
         дочерним для этого предка — из-за этого панель уезжала к низу страницы
         и на телефоне была не видна.
       */}
-      <div className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-2 gap-2 rounded-2xl border border-white/60 bg-[#173d35]/95 p-2 shadow-[0_20px_45px_-18px_rgba(0,0,0,.45)] backdrop-blur-md sm:hidden">
+      <div
+        className={`fixed inset-x-3 bottom-3 z-30 grid grid-cols-2 gap-2 rounded-2xl border border-white/60 bg-[#173d35]/95 p-2 shadow-[0_20px_45px_-18px_rgba(0,0,0,.45)] backdrop-blur-md transition-[opacity,transform] duration-300 ease-out sm:hidden ${
+          showBar ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
+        }`}
+      >
         <button
           type="button"
           onClick={() => openOrder()}
