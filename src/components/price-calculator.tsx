@@ -165,7 +165,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
 
             <div aria-live="polite" className="mt-6 rounded-2xl bg-[#e6eee8] p-5">
               <p className="text-xs uppercase tracking-[0.15em] text-[#66806f]">
-                Ваша конфигурация: {result.area.toFixed(1)} м²
+                Ориентировочная стоимость · {units} окон · {result.area.toFixed(1)} м²
               </p>
               {PRICES_APPROVED ? (
                 <>
@@ -173,8 +173,9 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                     от {money.format(result.min)} до {money.format(result.max)} ₸
                   </p>
                   <p className="mt-2 text-xs leading-5 text-[#66716a]">
-                    Предварительный ориентир, не является офертой. Точную стоимость менеджер
-                    подтвердит после замера.
+                    Расчёт по вашим параметрам: профиль, фурнитура, стеклопакет
+                    {installation ? ' и монтаж' : ''}. Точную стоимость менеджер подтвердит после
+                    замера — она зависит от размеров проёмов и цвета.
                   </p>
                 </>
               ) : (

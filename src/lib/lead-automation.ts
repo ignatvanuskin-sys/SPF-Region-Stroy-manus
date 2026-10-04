@@ -18,6 +18,18 @@ export type LeadDraft = {
   source: 'website-order-flow'
 }
 
+/** Читаемый номер заявки для подтверждения на экране успеха. */
+export function makeLeadNumber(createdAt: string, id: string) {
+  const date = new Date(createdAt)
+  const stamp = [
+    String(date.getFullYear()).slice(2),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('')
+  const tail = id.replace(/\D/g, '').slice(-4).padStart(4, '0')
+  return `СПФ-${stamp}-${tail}`
+}
+
 export const CRM_ENDPOINT = '/api/leads'
 const OUTBOX_KEY = 'spf-lead-outbox'
 const REQUEST_TIMEOUT_MS = 20000

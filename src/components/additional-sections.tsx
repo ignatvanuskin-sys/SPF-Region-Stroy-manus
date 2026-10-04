@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArrowUpRight,
   Camera,
   Check,
@@ -154,7 +154,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                 <button
                   type="button"
                   onClick={() => onOrder(preset)}
-                  className="mt-5 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-[#173d35]"
+                  className="mt-5 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-[#173d35]/25 px-4 text-sm font-semibold text-[#173d35] transition-colors hover:bg-[#e6eee8]"
                 >
                   {cta} <ArrowUpRight size={15} />
                 </button>
@@ -393,7 +393,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
             <div className="mt-8 grid gap-3">
               <a
                 href={CONTACT.phoneHref}
-                className="flex items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
+                className="flex min-h-24 items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
               >
                 <PhoneIcon />
                 <span>
@@ -403,7 +403,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
               </a>
               <a
                 href={CONTACT.phone2Href}
-                className="flex items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
+                className="flex min-h-24 items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
               >
                 <PhoneIcon />
                 <span>
@@ -411,7 +411,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                   <span className="font-semibold text-[#173d35]">{CONTACT.phone2}</span>
                 </span>
               </a>
-              <div className="flex items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4">
+              <div className="flex min-h-24 items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4">
                 <Clock size={19} className="text-[#b18b52]" />
                 <span>
                   <span className="block text-xs text-[#846536]">График работы</span>
@@ -421,7 +421,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
               </div>
               <a
                 href={`mailto:${CONTACT.email}`}
-                className="flex items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
+                className="flex min-h-24 items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
               >
                 <Mail size={19} className="text-[#b18b52]" />
                 <span>
@@ -433,7 +433,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                 href={`https://wa.me/${CONTACT.whatsappNumber}?text=${encodeURIComponent('Здравствуйте! Пишу с сайта СПФ Регион Строй.')}`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
+                className="flex min-h-24 items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
               >
                 <MessageCircle size={19} className="text-[#b18b52]" />
                 <span>
@@ -445,7 +445,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                 href={CONTACT.instagramUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
+                className="flex min-h-24 items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
               >
                 <Camera size={19} className="text-[#b18b52]" />
                 <span>

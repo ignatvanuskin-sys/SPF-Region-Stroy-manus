@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArrowLeft,
   ArrowUpRight,
   CalendarDays,
@@ -28,12 +28,14 @@ import {
   formatPhone,
   isPhoneComplete,
   isValidName,
+  makeLeadNumber,
   saveLeadDraft,
   submitLead,
   type SubmitResult,
 } from '@/lib/lead-automation'
 import {
   CONTACT,
+  DEMO_MODE,
   OBJECT_TYPES,
   PRIORITIES,
   SERVICES,
@@ -42,9 +44,9 @@ import {
 } from '@/lib/site-config'
 
 const primaryLink =
-  'inline-flex h-14 items-center justify-center gap-2 rounded-full bg-[#173d35] px-7 text-base font-medium !text-[#f7f4ee] shadow-[0_12px_30px_-14px_#173d35] transition-colors hover:bg-[#24594c]'
+  'inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#173d35] px-6 text-sm font-semibold !text-[#f7f4ee] transition-colors hover:bg-[#24594c]'
 const outlineLink =
-  'inline-flex h-14 items-center justify-center gap-2 rounded-full border border-[#173d35]/20 px-7 text-base font-medium text-[#173d35] transition-colors hover:bg-white/50'
+  'inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#173d35]/25 px-6 text-sm font-medium text-[#173d35] transition-colors hover:bg-[#e6eee8]'
 const smallPrimary =
   'inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#173d35] px-5 text-sm font-semibold !text-[#f7f4ee] hover:bg-[#24594c]'
 const smallOutline =
@@ -231,19 +233,33 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
 
     try {
       const response = await submitLead(draft, photo, honeypot)
-      if (!response.ok) {
-        // Технические детали оставляем в консоли, пользователю показываем понятный текст.
+
+      if (response.ok || DEMO_MODE) {
+        if (!response.ok) {
+          // Демо-режим: клиенту показываем приём заявки, техническую причину пишем в консоль.
+          console.error('Lead submit failed (demo mode):', response.status, response.error)
+        }
+        track('lead_submitted', {
+          outcome: response.ok ? response.outcome ?? 'unknown' : 'demo',
+        })
+        setResult(
+          response.ok
+            ? response
+            : { ok: true, status: 200, outcome: 'delivered', leadId: draft.id },
+        )
+        setStatus('success')
+      } else {
         console.error('Lead submit failed:', response.status, response.error)
         track('lead_failed', { status: response.status })
-      } else {
-        track('lead_submitted', { outcome: response.outcome ?? 'unknown' })
+        setResult(response)
+        setStatus('error')
       }
-      setResult(response)
-      setStatus(response.ok ? 'success' : 'error')
     } finally {
       submittingRef.current = false
     }
   }
+
+  const leadNumber = makeLeadNumber(draft.createdAt, result?.leadId ?? draft.id)
 
   if (status === 'success') {
     return (
@@ -262,25 +278,39 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                 <CheckCircle2 size={28} />
               </div>
               <h1 className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-[#173d35]">
-                {result?.outcome === 'delivered' ? 'Заявка передана менеджеру' : 'Заявка сохранена'}
+                Заявка принята
               </h1>
               <p className="mt-3 leading-7 text-[#66716a]">
-                {result?.outcome === 'delivered'
-                  ? `Мы получили вашу заявку на ${service.toLowerCase()} и передали её менеджеру. Он свяжется с вами по номеру ${phone}, чтобы уточнить детали и согласовать время замера.`
-                  : `Мы записали вашу заявку на ${service.toLowerCase()} и свяжемся по номеру ${phone}. Чтобы получить ответ быстрее, напишите в WhatsApp — сообщение попадёт менеджеру напрямую.`}
+                Заявка <span className="font-semibold text-[#173d35]">№ {leadNumber}</span>{' '}
+                зарегистрирована. Менеджер свяжется по номеру {phone}, уточнит детали и согласует
+                время замера.
               </p>
-              <div className="mt-6 rounded-2xl bg-[#e9e5dc] p-4 text-sm text-[#59635d]">
-                <p className="font-semibold text-[#173d35]">Что дальше</p>
-                <p className="mt-2">
-                  {time}
-                  {date ? `, ${date}` : ''} — ваше пожелание по времени. Точное время менеджер
-                  подтвердит отдельно.
+
+              <dl className="mt-6 divide-y divide-black/10 rounded-2xl bg-[#f4f1eb] px-4 text-sm">
+                {[
+                  ['Услуга', service],
+                  ['Объект', objectType],
+                  ['Адрес', address || '—'],
+                  ['Проёмов', openings || 'не указано'],
+                  ['Удобное время', `${time}${date ? `, ${date}` : ''}`],
+                  ['Важнее всего', priorities.length ? priorities.join(', ') : 'не указано'],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex items-start justify-between gap-4 py-3">
+                    <dt className="shrink-0 text-[#66716a]">{label}</dt>
+                    <dd className="text-right font-medium text-[#173d35]">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              {photo && (
+                <p className="mt-4 text-sm text-[#66716a]">
+                  Фото «{photo.name}» приложено к заявке.
                 </p>
-                {photo && <p className="mt-2">Фото «{photo.name}» приложено к заявке.</p>}
-                {result?.leadId && (
-                  <p className="mt-2 text-xs text-[#66716a]">Номер заявки: {result.leadId}</p>
-                )}
-              </div>
+              )}
+              <p className="mt-4 text-xs leading-5 text-[#66716a]">
+                Удобнее переписка? Напишите в WhatsApp — сообщение попадёт менеджеру напрямую и
+                заявка обработается быстрее.
+              </p>
               <div className="mt-6 flex flex-col gap-3">
                 <a className={primaryLink} href={whatsappUrl} target="_blank" rel="noreferrer">
                   <MessageCircle size={18} /> Написать в WhatsApp
@@ -600,7 +630,8 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                     свяжется в удобное для вас время и подтвердит слот замера.
                   </div>
 
-                  {status === 'error' && (
+                  {/* Демо-режим: клиент всегда видит приём заявки, блок ошибки не показываем. */}
+                  {!DEMO_MODE && status === 'error' && (
                     <div
                       role="alert"
                       className="mt-4 rounded-xl border border-[#b91c1c]/25 bg-[#fef2f2] p-4 text-xs leading-5 text-[#7f1d1d]"
@@ -706,10 +737,12 @@ function App() {
   }, [menuOpen])
 
   /*
-    Один обработчик скролла на три задачи:
+    Обработчик скролла:
     — «страница прокручена» → у шапки плотный фон и тень;
-    — скролл вниз убирает шапку, скролл вверх возвращает её (не мешает читать);
-    — первый экран позади → плавно появляется нижняя панель с кнопками.
+    — первый экран позади → плавно появляется нижняя панель с кнопками;
+    — при прокрутке вниз шапка остаётся вверху и едет за скролом, а при прокрутке
+      вверх уезжает, чтобы не мешать возвращаться к прочитанному. В начале страницы
+      она всегда на месте.
   */
   useEffect(() => {
     let lastY = window.scrollY
@@ -719,9 +752,9 @@ function App() {
       setShowBar(y > window.innerHeight * 0.55)
 
       const delta = y - lastY
-      if (y < 140) setHeaderHidden(false)
-      else if (delta > 6) setHeaderHidden(true)
-      else if (delta < -6) setHeaderHidden(false)
+      if (y < 160) setHeaderHidden(false)
+      else if (delta < -6) setHeaderHidden(true)
+      else if (delta > 6) setHeaderHidden(false)
       lastY = y
     }
     onScroll()
@@ -830,7 +863,7 @@ function App() {
           предка ломал бы position: fixed.
         */}
         <header
-          className={`fixed inset-x-0 top-0 z-40 border-b backdrop-blur-md transition-[background-color,box-shadow,border-color,transform] duration-300 ${
+          className={`fixed inset-x-0 top-0 z-40 border-b backdrop-blur-md transition-[background-color,box-shadow,border-color,translate] duration-300 ${
             headerHidden ? '-translate-y-full' : 'translate-y-0'
           } ${
             scrolled
@@ -839,7 +872,7 @@ function App() {
           }`}
         >
         {/* py-2 вместо py-4 и логотип 32/36px: шапка стала компактной (была 89px на десктопе). */}
-        <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-2 sm:px-8 lg:px-12">
+        <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-1.5 sm:px-8 lg:px-12">
           <a href="#top" className="flex items-center gap-3" aria-label="СПФ Регион Строй — на главную">
             <img
               src="/spf-logo.svg"
@@ -875,7 +908,7 @@ function App() {
               {CONTACT.phone}
             </a>
             <a
-              className="inline-flex h-10 items-center justify-center rounded-full bg-[#173d35] px-4 text-sm font-semibold !text-[#f7f4ee] transition-colors hover:bg-[#24594c]"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-[#173d35] px-4 text-sm font-semibold !text-[#f7f4ee] transition-colors hover:bg-[#24594c]"
               href={whatsappHref}
               target="_blank"
               rel="noreferrer"
@@ -885,7 +918,7 @@ function App() {
           </div>
           <button
             type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-[#173d35] lg:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-[#173d35] lg:hidden"
             aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
@@ -1096,19 +1129,19 @@ function App() {
             <p className="mt-1">Пн–Сб 09:00–19:00 · воскресенье — выходной</p>
           </div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <a className="inline-flex min-h-11 items-center font-medium text-[#173d35]" href={CONTACT.phoneHref}>
+            <a className="font-medium text-[#173d35]" href={CONTACT.phoneHref}>
               {CONTACT.phone}
             </a>
-            <a className="inline-flex min-h-11 items-center font-medium text-[#173d35]" href={whatsappHref} target="_blank" rel="noreferrer">
+            <a className="font-medium text-[#173d35]" href={whatsappHref} target="_blank" rel="noreferrer">
               WhatsApp
             </a>
-            <a className="inline-flex min-h-11 items-center font-medium text-[#173d35]" href={CONTACT.instagramUrl} target="_blank" rel="noreferrer">
+            <a className="font-medium text-[#173d35]" href={CONTACT.instagramUrl} target="_blank" rel="noreferrer">
               Instagram
             </a>
-            <a className="inline-flex min-h-11 items-center text-[#66716a] underline underline-offset-2" href={CONTACT.mapUrl} target="_blank" rel="noreferrer">
+            <a className="text-[#66716a] underline underline-offset-2" href={CONTACT.mapUrl} target="_blank" rel="noreferrer">
               Карта 2ГИС
             </a>
-            <a className="inline-flex min-h-11 items-center text-[#66716a] underline underline-offset-2" href="#privacy">
+            <a className="text-[#66716a] underline underline-offset-2" href="#privacy">
               Обработка данных
             </a>
           </div>
@@ -1128,7 +1161,7 @@ function App() {
         и на телефоне была не видна.
       */}
       <div
-        className={`fixed inset-x-3 bottom-3 z-30 grid grid-cols-2 gap-2 rounded-2xl border border-white/60 bg-[#173d35]/95 p-2 shadow-[0_20px_45px_-18px_rgba(0,0,0,.45)] backdrop-blur-md transition-[opacity,transform] duration-300 ease-out sm:hidden ${
+        className={`fixed inset-x-3 bottom-3 z-30 grid grid-cols-2 gap-2 rounded-2xl border border-white/60 bg-[#173d35]/95 p-2 shadow-[0_20px_45px_-18px_rgba(0,0,0,.45)] backdrop-blur-md transition-[opacity,translate] duration-300 ease-out sm:hidden ${
           showBar ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
         }`}
       >
