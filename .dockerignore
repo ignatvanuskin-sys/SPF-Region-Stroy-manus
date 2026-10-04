@@ -1,0 +1,17 @@
+node_modules
+dist
+.git
+.gitignore
+.dockerignore
+
+# Локальные копии проекта, архивы и артефакты
+spf-region-manus-new
+outputs
+*.zip
+.manus
+.manus-webdev
+.vscode
+.idea
+
+# Runtime-данные заявок и фото клиентов не должны попадать в образ
+server/data

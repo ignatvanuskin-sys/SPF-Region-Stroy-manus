@@ -23,5 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 
-# Runtime lead data
-server/data/*.ndjson
+# Runtime lead data: заявки и фото клиентов не публикуются
+server/data/
+
+# Локальные артефакты и копии проекта
+outputs/
+*.zip
+spf-region-manus-new/
+.manus/
+.manus-webdev/

@@ -5,25 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#173d35" />
     <link rel="icon" type="image/svg+xml" href="/spf-logo.svg" />
-    <meta name="description" content="СПФ Регион Строй в Астане: пластиковые и алюминиевые окна, двери, фасадные витражи и перегородки. Получите предварительный расчет и запишитесь на замер." />
+    <meta
+      name="description"
+      content="СПФ Регион Строй в Астане: пластиковые и алюминиевые окна, двери и фасадные витражи. Подберём решение, организуем замер и подготовим расчёт."
+    />
     <meta name="robots" content="index,follow,max-image-preview:large" />
     <meta name="author" content="СПФ Регион Строй" />
     <meta name="geo.region" content="KZ-AST" />
     <meta name="geo.placename" content="Астана" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="СПФ Регион Строй" />
     <meta property="og:locale" content="ru_KZ" />
     <meta property="og:title" content="СПФ Регион Строй — окна и конструкции в Астане" />
-    <meta property="og:description" content="Окна, двери, фасадные витражи и перегородки. Предварительный расчет и запись на замер." />
+    <meta
+      property="og:description"
+      content="Окна, двери и фасадные витражи в Астане. Предварительный расчёт и запись на замер."
+    />
+    <meta property="og:url" content="/" />
+    <meta property="og:image" content="/og-cover.webp" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="СПФ Регион Строй — окна и конструкции в Астане" />
-    <meta name="twitter:description" content="Окна, двери, фасадные витражи и перегородки в Астане." />
+    <meta name="twitter:description" content="Окна, двери и фасадные витражи в Астане." />
+    <meta name="twitter:image" content="/og-cover.webp" />
     <title>СПФ Регион Строй — окна и конструкции в Астане</title>
+    <script>
+      // Домен меняется при публикации, поэтому canonical и Open Graph URL собираем из адреса деплоя.
+      ;(function () {
+        var origin = window.location.origin
+        var pageUrl = origin + window.location.pathname
+        var cover = origin + '/og-cover.webp'
+
+        var canonical = document.querySelector('link[rel="canonical"]')
+        if (!canonical) {
+          canonical = document.createElement('link')
+          canonical.setAttribute('rel', 'canonical')
+          document.head.appendChild(canonical)
+        }
+        canonical.setAttribute('href', pageUrl)
+
+        var setMeta = function (selector, value) {
+          var node = document.querySelector(selector)
+          if (node) node.setAttribute('content', value)
+        }
+        setMeta('meta[property="og:url"]', pageUrl)
+        setMeta('meta[property="og:image"]', cover)
+        setMeta('meta[name="twitter:image"]', cover)
+      })()
+    </script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "LocalBusiness",
         "name": "СПФ Регион Строй",
-        "description": "Окна, двери, фасадные витражи и перегородки из металлопластика и алюминия в Астане.",
+        "description": "Окна, двери и фасадные витражи из металлопластика и алюминия в Астане.",
         "telephone": "+7 701 893 67 87",
         "email": "plastmontag_2010@mail.ru",
         "address": {
@@ -33,10 +67,7 @@
           "addressCountry": "KZ"
         },
         "areaServed": "Астана",
-        "sameAs": [
-          "https://2gis.kz/astana/firm/70000001042561575",
-          "https://instagram.com/spf01002"
-        ]
+        "sameAs": ["https://2gis.kz/astana/firm/70000001042561575"]
       }
     </script>
   </head>
