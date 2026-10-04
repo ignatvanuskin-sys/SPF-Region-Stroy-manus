@@ -4,16 +4,31 @@ import { extname, relative, resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
 
 const PORT = Number(process.env.PORT || 3000)
-const CRM_WEBHOOK_URL = process.env.CRM_WEBHOOK_URL || ''
 const WHATSAPP_PHONE = process.env.WHATSAPP_PHONE || '77018936787'
 const ALLOWED_ORIGIN = (process.env.ALLOWED_ORIGIN || '').trim()
-const DATA_DIR = resolve(process.cwd(), 'server', 'data')
-const UPLOAD_DIR = resolve(DATA_DIR, 'uploads')
+
+// Каналы доставки заявки. Ничего не выдумываем: если переменной нет — канал выключен.
+const CRM_WEBHOOK_URL = process.env.CRM_WEBHOOK_URL || ''
+const CRM_API_TOKEN = process.env.CRM_API_TOKEN || ''
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || ''
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || ''
+
+// Хранилище заявок. LEADS_DIR задаётся на постоянном диске (Railway Volume).
+const LEADS_DIR = process.env.LEADS_DIR ? resolve(process.env.LEADS_DIR) : resolve(process.cwd(), 'server', 'data')
+const UPLOAD_DIR = resolve(LEADS_DIR, 'uploads')
+const LEADS_FILE = resolve(LEADS_DIR, 'leads.ndjson')
+// Если путь задан явно, считаем его постоянным: именно так подключается volume.
+const STORAGE_PERSISTENT = Boolean(process.env.LEADS_DIR)
+
 const STATIC_DIR = resolve(process.cwd(), 'dist')
 const MAX_BODY_BYTES = 12 * 1024 * 1024
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
 const RATE_LIMIT_MAX = 5
+const DELIVERY_TIMEOUT_MS = 8000
+const DELIVERY_ATTEMPTS = 3
+
+const APP_VERSION = (process.env.RAILWAY_GIT_COMMIT_SHA || process.env.APP_VERSION || 'local').slice(0, 7)
 
 const MIME_TYPES = {
   '.css': 'text/css; charset=utf-8',
@@ -31,14 +46,22 @@ const MIME_TYPES = {
   '.xml': 'application/xml; charset=utf-8',
 }
 
-// Базовые заголовки безопасности. CORS по умолчанию выключен: фронтенд и API живут на одном домене.
+// Базовые заголовки безопасности. CORS по умолчанию выключен: фронтенд и API на одном домене.
 const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'SAMEORIGIN',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
 }
 
-const originHeaders = () => (ALLOWED_ORIGIN ? { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', Vary: 'Origin' } : {})
+const originHeaders = () =>
+  ALLOWED_ORIGIN
+    ? {
+        'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        Vary: 'Origin',
+      }
+    : {}
 
 const json = (response, status, body) => {
   response.writeHead(status, {
@@ -51,6 +74,13 @@ const json = (response, status, body) => {
 }
 
 const httpError = (message, statusCode) => Object.assign(new Error(message), { statusCode })
+
+/** Секреты не должны попадать в логи и в ответы API. */
+const sanitizeStatus = (value) =>
+  String(value ?? '')
+    .replace(/bot\d+:[\w-]+/g, 'bot***')
+    .replace(/(token|key|secret|authorization)=[^\s&]+/gi, '$1=***')
+    .slice(0, 200)
 
 /** Безопасный decodeURIComponent: некорректный percent-encoding не должен ронять процесс. */
 const safeDecode = (value) => {
@@ -151,7 +181,7 @@ const normalizeLead = (input) => {
     priorities: Array.isArray(input.priorities) ? input.priorities.slice(0, 8).map((item) => String(item).slice(0, 40)) : [],
     comment: String(input.comment || '').trim().slice(0, 1500),
     consent: Boolean(input.consent),
-    reminderDueAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+    pageUrl: String(input.pageUrl || '').trim().slice(0, 300),
   }
 
   if (!lead.name || !lead.phone) throw httpError('name and phone are required', 400)
@@ -168,8 +198,8 @@ const sanitizeFileName = (name) => {
 const storePhoto = async (leadId, file) => {
   if (!file) return null
   if (file.content.length > MAX_PHOTO_BYTES) throw httpError('Photo is too large', 413)
-  if (!['image/jpeg', 'image/png'].includes(file.type)) {
-    throw httpError('Only JPG and PNG photos are supported', 415)
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    throw httpError('Only JPG, PNG and WebP photos are supported', 415)
   }
 
   await mkdir(UPLOAD_DIR, { recursive: true })
@@ -178,9 +208,10 @@ const storePhoto = async (leadId, file) => {
   return { field: file.field, name: file.name, type: file.type, size: file.content.length, storedAs }
 }
 
-const makeWhatsAppUrl = (lead) => {
-  const message = [
-    'Здравствуйте! Запрос с сайта СПФ Регион Строй.',
+/** Сообщение менеджеру — используется и для Telegram, и как текст WhatsApp-ссылки. */
+const buildManagerMessage = (lead) =>
+  [
+    'Новая заявка с сайта СПФ Регион Строй',
     `Имя: ${lead.name}`,
     `Телефон: ${lead.phone}`,
     lead.service && `Интересует: ${lead.service}`,
@@ -188,7 +219,7 @@ const makeWhatsAppUrl = (lead) => {
     `Адрес: ${lead.address}`,
     lead.openings && `Проёмов: ${lead.openings}`,
     lead.priorities.length && `Важно: ${lead.priorities.join(', ')}`,
-    lead.preferredDate && `Дата: ${lead.preferredDate}`,
+    lead.preferredDate && `Желаемая дата: ${lead.preferredDate}`,
     lead.preferredTime && `Время: ${lead.preferredTime}`,
     lead.comment && `Комментарий: ${lead.comment}`,
     lead.photo ? `Фото: ${lead.photo.name}` : '',
@@ -196,24 +227,74 @@ const makeWhatsAppUrl = (lead) => {
     .filter(Boolean)
     .join('\n')
 
-  return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`
+const makeWhatsAppUrl = (lead) => `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(buildManagerMessage(lead))}`
+
+const postJson = async (url, payload, extraHeaders = {}) => {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), DELIVERY_TIMEOUT_MS)
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...extraHeaders },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    })
+    return { ok: response.ok, status: `HTTP ${response.status}` }
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
-const sendToCrm = async (lead) => {
-  if (!CRM_WEBHOOK_URL) return { connected: false, status: 'CRM_WEBHOOK_URL is not configured' }
-  const response = await fetch(CRM_WEBHOOK_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(process.env.CRM_API_TOKEN ? { Authorization: `Bearer ${process.env.CRM_API_TOKEN}` } : {}),
-    },
-    body: JSON.stringify({
-      ...lead,
-      tags: ['website', 'request-measurement'],
-      managerReminderAt: lead.reminderDueAt,
-    }),
-  })
-  return { connected: response.ok, status: `CRM responded with ${response.status}` }
+/** Отправка с таймаутом и повторами. PII в логи не пишем — только имя канала и статус. */
+const deliver = async (channel, send, attempts = DELIVERY_ATTEMPTS) => {
+  let last = { ok: false, status: 'not attempted' }
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      last = await send()
+      if (last.ok) return { channel, delivered: true, status: last.status, attempts: attempt }
+    } catch (error) {
+      last = { ok: false, status: error?.name === 'AbortError' ? 'timeout' : sanitizeStatus(error?.message) }
+    }
+    if (attempt < attempts) await new Promise((resolveLater) => setTimeout(resolveLater, 400 * attempt))
+  }
+
+  return { channel, delivered: false, status: last.status, attempts }
+}
+
+const crmPayload = (lead) => ({
+  ...lead,
+  tags: ['website', 'request-measurement'],
+})
+
+const runDelivery = async (lead) => {
+  const channels = []
+
+  if (CRM_WEBHOOK_URL) {
+    channels.push(
+      await deliver('crm', () =>
+        postJson(CRM_WEBHOOK_URL, crmPayload(lead), CRM_API_TOKEN ? { Authorization: `Bearer ${CRM_API_TOKEN}` } : {}),
+      ),
+    )
+  } else {
+    channels.push({ channel: 'crm', delivered: false, status: 'not configured (CRM_WEBHOOK_URL is empty)', attempts: 0 })
+  }
+
+  if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+    channels.push(
+      await deliver('telegram', () =>
+        postJson(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+          chat_id: TELEGRAM_CHAT_ID,
+          text: buildManagerMessage(lead),
+          disable_web_page_preview: true,
+        }),
+      ),
+    )
+  } else {
+    channels.push({ channel: 'telegram', delivered: false, status: 'not configured', attempts: 0 })
+  }
+
+  return channels
 }
 
 const sendFile = async (response, filePath, status = 200) => {
@@ -336,32 +417,50 @@ const handleLead = async (request, response) => {
 
   // Honeypot: скрытое поле заполняют только боты. Отвечаем успехом, но заявку не сохраняем.
   if (typeof fields.company === 'string' && fields.company.trim()) {
-    console.warn('[lead] honeypot сработал: заявка отброшена')
-    return json(response, 201, { ok: true, leadId: randomUUID(), crm: { connected: false, status: 'dropped' }, photo: null })
+    console.warn('[lead] honeypot triggered, submission dropped')
+    return json(response, 201, { ok: true, outcome: 'dropped', leadId: randomUUID(), whatsappUrl: null })
   }
 
   const lead = normalizeLead(fields)
   const photo = await storePhoto(lead.id, photoFile)
   if (photo) lead.photo = photo
 
-  await mkdir(DATA_DIR, { recursive: true })
-  await appendFile(resolve(DATA_DIR, 'leads.ndjson'), `${JSON.stringify(lead)}\n`, 'utf8')
-
-  let crm = { connected: false, status: 'not attempted' }
+  // 1. Сначала пробуем сохранить. Если не сохранилось — честный отказ, а не «успех».
+  let stored = false
+  let storageError = ''
   try {
-    crm = await sendToCrm(lead)
+    await mkdir(LEADS_DIR, { recursive: true })
+    await appendFile(LEADS_FILE, `${JSON.stringify(lead)}\n`, 'utf8')
+    stored = true
   } catch (error) {
-    crm = { connected: false, status: error.message }
+    storageError = sanitizeStatus(error?.message)
   }
 
-  if (!crm.connected) {
-    console.warn(`[lead ${lead.id}] не передан в CRM (${crm.status}). Сохранён в server/data/leads.ndjson.`)
+  // 2. Затем доставляем в настроенные каналы.
+  let channels = []
+  try {
+    channels = await runDelivery(lead)
+  } catch (error) {
+    channels = [{ channel: 'delivery', delivered: false, status: sanitizeStatus(error?.message), attempts: 0 }]
+  }
+
+  const delivered = channels.some((channel) => channel.delivered)
+
+  if (!delivered && !stored) {
+    console.error(`[lead ${lead.id}] not stored and not delivered: ${storageError}`)
+    throw httpError('Could not accept the request', 503)
+  }
+
+  if (!delivered) {
+    console.warn(`[lead ${lead.id}] stored locally only; no delivery channel configured`)
   }
 
   return json(response, 201, {
     ok: true,
     leadId: lead.id,
-    crm,
+    outcome: delivered ? 'delivered' : 'stored',
+    channels,
+    storage: { saved: stored, persistent: STORAGE_PERSISTENT },
     photo: photo ? { name: photo.name, size: photo.size } : null,
     whatsappUrl: makeWhatsAppUrl(lead),
   })
@@ -377,9 +476,15 @@ const server = createServer(async (request, response) => {
       if (request.method !== 'GET') return json(response, 405, { ok: false, error: 'Method not allowed' })
       return json(response, 200, {
         ok: true,
-        crmConfigured: Boolean(CRM_WEBHOOK_URL),
-        whatsappConfigured: Boolean(WHATSAPP_PHONE),
+        version: APP_VERSION,
+        uptimeSec: Math.round(process.uptime()),
+        delivery: {
+          crm: Boolean(CRM_WEBHOOK_URL),
+          telegram: Boolean(TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID),
+        },
+        storage: { driver: 'ndjson', persistent: STORAGE_PERSISTENT },
         rateLimit: `${RATE_LIMIT_MAX}/${RATE_LIMIT_WINDOW_MS / 60000}min`,
+        whatsappConfigured: Boolean(WHATSAPP_PHONE),
       })
     }
 
@@ -396,10 +501,35 @@ const server = createServer(async (request, response) => {
   } catch (error) {
     // Один плохой запрос не должен ронять сервер.
     const status = error?.statusCode ?? 500
-    console.error(`[server] ${request.method} ${request.url} -> ${status}: ${error?.message}`)
+    console.error(`[server] ${request.method} ${request.url} -> ${status}: ${sanitizeStatus(error?.message)}`)
     if (response.headersSent) return response.destroy()
     return json(response, status, { ok: false, error: status === 500 ? 'Server error' : error?.message })
   }
 })
 
-server.listen(PORT, '0.0.0.0', () => console.log(`SPF lead API and website listening on http://localhost:${PORT}`))
+const start = async () => {
+  try {
+    await mkdir(LEADS_DIR, { recursive: true })
+  } catch (error) {
+    console.error(`[startup] не удалось создать каталог заявок: ${sanitizeStatus(error?.message)}`)
+  }
+
+  if (!STORAGE_PERSISTENT) {
+    console.warn(
+      '[startup] LEADS_DIR не задан: заявки пишутся в файл внутри контейнера и исчезнут при передеплое. ' +
+        'Подключите постоянный диск и задайте LEADS_DIR.',
+    )
+  }
+  if (!CRM_WEBHOOK_URL && !(TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID)) {
+    console.warn(
+      '[startup] ни один канал доставки не настроен (CRM_WEBHOOK_URL / TELEGRAM_BOT_TOKEN). ' +
+        'Клиент увидит статус «заявка сохранена», а не «передана менеджеру».',
+    )
+  }
+
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`SPF Region site + lead API on http://0.0.0.0:${PORT} (version ${APP_VERSION})`)
+  })
+}
+
+start()

@@ -22,6 +22,7 @@ const heroImage = '/works/work-01.webp'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { AdditionalSections } from '@/components/additional-sections'
+import { track } from '@/lib/analytics'
 import {
   buildWhatsAppUrl,
   createLeadDraft,
@@ -52,6 +53,9 @@ const smallOutline =
 const fieldClass =
   'mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-4 text-[#202522] outline-none placeholder:text-[#7d8781] focus:ring-2 focus:ring-[#173d35]'
 const errorClass = 'mt-2 text-xs leading-5 text-[#b91c1c]'
+
+// Год считаем один раз при загрузке модуля: вызов Date внутри рендера — нечистая функция.
+const COPYRIGHT_YEAR = new Date().getFullYear()
 
 const whatsappHref = `https://wa.me/${CONTACT.whatsappNumber}?text=${encodeURIComponent(
   'Здравствуйте! Хочу узнать стоимость окон.',
@@ -176,6 +180,9 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
       if (!response.ok) {
         // Технические детали оставляем в консоли, пользователю показываем понятный текст.
         console.error('Lead submit failed:', response.status, response.error)
+        track('lead_failed', { status: response.status })
+      } else {
+        track('lead_submitted', { outcome: response.outcome ?? 'unknown' })
       }
       setResult(response)
       setStatus(response.ok ? 'success' : 'error')
@@ -201,11 +208,12 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                 <CheckCircle2 size={28} />
               </div>
               <h1 className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-[#173d35]">
-                Заявка отправлена
+                {result?.outcome === 'delivered' ? 'Заявка передана менеджеру' : 'Заявка сохранена'}
               </h1>
               <p className="mt-3 leading-7 text-[#66716a]">
-                Мы получили вашу заявку на {service.toLowerCase()} и передали её менеджеру. Он свяжется
-                с вами по номеру {phone}, чтобы уточнить детали и согласовать время замера.
+                {result?.outcome === 'delivered'
+                  ? `Мы получили вашу заявку на ${service.toLowerCase()} и передали её менеджеру. Он свяжется с вами по номеру ${phone}, чтобы уточнить детали и согласовать время замера.`
+                  : `Мы записали вашу заявку на ${service.toLowerCase()} и свяжемся по номеру ${phone}. Чтобы получить ответ быстрее, напишите в WhatsApp — сообщение попадёт менеджеру напрямую.`}
               </p>
               <div className="mt-6 rounded-2xl bg-[#e9e5dc] p-4 text-sm text-[#59635d]">
                 <p className="font-semibold text-[#173d35]">Что дальше</p>
@@ -595,6 +603,7 @@ function App() {
   const [preset, setPreset] = useState<Service>()
 
   const openOrder = (service?: Service) => {
+    track('cta_click', { cta: 'order', service: service ?? 'none' })
     setPreset(service)
     setScreen('order')
   }
@@ -607,6 +616,30 @@ function App() {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [menuOpen])
+
+  useEffect(() => {
+    track('page_view', { path: window.location.pathname })
+  }, [])
+
+  /*
+    Одна точка отслеживания кликов: так в аналитику попадают любые ссылки tel:, WhatsApp,
+    Instagram и 2GIS — включая те, что появятся в новых секциях. Отдельные onClick на каждую
+    кнопку не нужны, и ни одна новая ссылка не выпадет из статистики.
+  */
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null
+      const anchor = target?.closest?.('a[href]') as HTMLAnchorElement | null
+      if (!anchor) return
+      const href = anchor.getAttribute('href') ?? ''
+      if (href.startsWith('tel:')) return track('phone_click')
+      if (href.includes('wa.me')) return track('whatsapp_click', { from: anchor.dataset.track ?? 'link' })
+      if (href.includes('instagram.com')) return track('instagram_click')
+      if (href.includes('2gis.kz')) return track('map_click')
+    }
+    document.addEventListener('click', onClick)
+    return () => document.removeEventListener('click', onClick)
+  }, [])
 
   if (screen === 'order') return <OrderFlow initialService={preset} onBack={() => setScreen('home')} />
 
@@ -884,7 +917,7 @@ function App() {
           </div>
         </div>
         <p className="text-xs text-[#8a938c]">
-          © {new Date().getFullYear()} ТОО «СПФ Регион Строй». Рейтинг, отзывы и часть фотографий — по данным
+          © {COPYRIGHT_YEAR} ТОО «СПФ Регион Строй». Рейтинг, отзывы и часть фотографий — по данным
           открытой карточки компании в 2ГИС.
         </p>
       </footer>

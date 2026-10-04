@@ -70,7 +70,14 @@ export type SubmitResult = {
   ok: boolean
   status: number
   leadId?: string
-  crmConnected?: boolean
+  /**
+   * delivered — заявка передана в канал доставки (CRM/Telegram);
+   * stored — сохранена на сервере, но канал доставки не настроен;
+   * dropped — отброшена антиспамом.
+   * UI обязан различать эти состояния: обещать «передана менеджеру» можно только при delivered.
+   */
+  outcome?: 'delivered' | 'stored' | 'dropped'
+  storage?: { saved: boolean; persistent: boolean }
   error?: string
 }
 
@@ -94,7 +101,12 @@ export async function submitLead(lead: LeadDraft, photo?: File, honeypot = ''): 
       signal: controller.signal,
     })
     const data = (await response.json().catch(() => null)) as
-      | { leadId?: string; crm?: { connected?: boolean }; error?: string }
+      | {
+          leadId?: string
+          outcome?: 'delivered' | 'stored' | 'dropped'
+          storage?: { saved: boolean; persistent: boolean }
+          error?: string
+        }
       | null
 
     if (!response.ok) {
@@ -109,7 +121,8 @@ export async function submitLead(lead: LeadDraft, photo?: File, honeypot = ''): 
       ok: true,
       status: response.status,
       leadId: data?.leadId,
-      crmConnected: Boolean(data?.crm?.connected),
+      outcome: data?.outcome,
+      storage: data?.storage,
     }
   } catch (error) {
     const aborted = error instanceof DOMException && error.name === 'AbortError'

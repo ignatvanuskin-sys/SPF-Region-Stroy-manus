@@ -1,5 +1,6 @@
 import { Calculator, ChevronDown, MessageCircle, Ruler, Send } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { track } from '@/lib/analytics'
 import {
   CONTACT,
   FITTING_OPTIONS,
@@ -18,6 +19,14 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
   const [fitting, setFitting] = useState<string>(FITTING_OPTIONS[0].id)
   const [glazing, setGlazing] = useState<string>(GLAZING_OPTIONS[0].id)
   const [installation, setInstallation] = useState(true)
+
+  // Событие «начал считать» отправляем один раз — при первом изменении любого поля.
+  const startedRef = useRef(false)
+  const markCalculatorStarted = () => {
+    if (startedRef.current) return
+    startedRef.current = true
+    track('calculator_started')
+  }
 
   const result = useMemo(() => {
     const area = Math.max(0.1, units * width * height)
@@ -73,7 +82,10 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
             </p>
           </div>
 
-          <div className="rounded-[2rem] bg-[#f7f4ee] p-5 text-[#202522] shadow-[0_30px_80px_-35px_rgba(0,0,0,.45)] sm:p-8">
+          <div
+            onInput={markCalculatorStarted}
+            className="rounded-[2rem] bg-[#f7f4ee] p-5 text-[#202522] shadow-[0_30px_80px_-35px_rgba(0,0,0,.45)] sm:p-8"
+          >
             <div className="grid gap-5 sm:grid-cols-3">
               <label className="text-sm text-[#59635d]">
                 Количество окон
@@ -180,7 +192,10 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
-                onClick={onOrder}
+                onClick={() => {
+                  track('calculator_completed', { units, area: Number(result.area.toFixed(1)) })
+                  onOrder()
+                }}
                 className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#173d35] px-5 text-sm font-semibold !text-[#f7f4ee] hover:bg-[#24594c] sm:w-auto sm:flex-1"
               >
                 Получить точный расчёт <Send size={16} />
@@ -189,6 +204,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => track('calculator_completed', { units, area: Number(result.area.toFixed(1)), via: 'whatsapp' })}
                 className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[#173d35]/25 px-5 text-sm font-medium text-[#173d35] hover:bg-[#e6eee8] sm:w-auto"
               >
                 <MessageCircle size={16} /> Расчёт в WhatsApp
