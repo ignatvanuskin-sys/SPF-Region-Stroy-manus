@@ -39,3 +39,6 @@ qa_*.js
 measure*.js
 
 probe_*.js
+probe*.js
+qa*.md
+*-findings.md
