@@ -18,7 +18,6 @@ import {
 } from 'lucide-react'
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 // Hero-изображение — реальная работа компании (фотография из карточки 2ГИС), а не сток.
-const heroImage = '/works/work-01.webp'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { AdditionalSections } from '@/components/additional-sections'
@@ -646,7 +645,40 @@ function App() {
   return (
     <>
       <main className="page-enter min-h-screen overflow-x-hidden bg-[#f4f1eb] pb-20 text-[#202522] md:pb-0">
-      <header className="relative z-20 border-b border-black/8 bg-[#f4f1eb]/90 backdrop-blur-md">
+      <section
+        id="top"
+        className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-[#0b1a16]"
+      >
+        {/* Фон главного экрана — реальная работа компании (остекление интерьера). */}
+        <img
+          src="/hero/hero.webp"
+          alt="Остекление интерьера: тёмная стеклянная перегородка — работа СПФ Регион Строй"
+          width={1920}
+          height={1008}
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 -z-20 size-full object-cover object-[58%_center]"
+        />
+        {/*
+          Градиенты под текст: замерено по пикселям снимка — худший участок в зоне текста даёт
+          контраст 10.5:1 с белым (норма 4.5:1). Без них самый светлый участок давал 1.68:1.
+        */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgba(9,23,20,0.94)_0%,rgba(9,23,20,0.74)_28%,rgba(9,23,20,0.44)_55%,rgba(9,23,20,0.2)_100%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(9,23,20,0.72)_0%,rgba(9,23,20,0.34)_45%,rgba(9,23,20,0)_78%)]"
+        />
+
+        {/*
+          Шапка лежит поверх фото на светлой подложке. Замерено: в верхней полосе снимка есть
+          и очень светлые участки (контраст с тёмным текстом 7,6:1), и очень тёмные (1,1:1),
+          поэтому ни белый, ни тёмный текст не читается по всей ширине без подложки.
+        */}
+        <header className="relative z-20 border-b border-black/10 bg-[#f4f1eb]/92 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-4 sm:px-8 lg:px-12">
           <a href="#top" className="flex items-center gap-3" aria-label="СПФ Регион Строй — на главную">
             <img
@@ -738,78 +770,61 @@ function App() {
         )}
       </header>
 
-      <section
-        id="top"
-        className="mx-auto grid max-w-[1240px] gap-10 px-5 pb-12 pt-8 sm:px-8 sm:pt-12 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-16 lg:px-12 lg:pb-20 lg:pt-16"
-      >
-        <div>
+        {/* pb на мобильном больше: липкая CTA-панель (66px + отступ) не должна перекрывать
+            адресную строку первого экрана — замерено перекрытие ~22px при pb-14. */}
+        <div className="relative mx-auto mt-auto w-full max-w-[1240px] px-5 pb-28 pt-14 sm:px-8 sm:pb-16 lg:px-12 lg:pb-20">
           <Badge
             variant="outline"
-            className="mb-6 rounded-full border-[#b18b52]/40 bg-[#b18b52]/10 px-3 py-1 text-[#846536]"
+            className="!overflow-visible rounded-full border-white/30 bg-white/10 px-3 py-1 leading-5 !text-[#f4efe6]"
           >
             Окна · двери · витражи · перегородки
           </Badge>
-          <h1 className="max-w-[680px] text-[clamp(2.7rem,7vw,5.7rem)] font-semibold leading-[0.96] tracking-[-0.065em] text-[#173d35]">
+          <h1 className="mt-6 max-w-[860px] text-[clamp(2.4rem,7vw,5.4rem)] font-semibold leading-[0.98] tracking-[-0.06em] text-white">
             Свет, тепло и тишина — в вашем доме.
           </h1>
-          <p className="mt-6 max-w-[530px] text-base leading-7 text-[#66716a] sm:text-lg">
-            Окна и конструкции из металлопластика и алюминия в Астане. Подберём решение под ваш
-            объект, организуем замер и подготовим расчёт.
+          <p className="mt-6 max-w-[560px] text-base leading-7 text-white/85 sm:text-lg">
+            Окна, двери и фасадные витражи из металлопластика и алюминия в Астане. Подберём решение
+            под ваш объект, организуем замер и подготовим расчёт.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <button type="button" className={primaryLink} onClick={() => openOrder()}>
+            <button
+              type="button"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#b18b52] px-6 text-sm font-semibold text-[#14201c] transition-colors hover:bg-[#c49a61]"
+              onClick={() => openOrder()}
+            >
               Запросить расчёт <ArrowUpRight size={18} />
             </button>
-            <a className={outlineLink} href={CONTACT.phoneHref}>
+            <a
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/40 px-6 text-sm font-medium text-white transition-colors hover:bg-white/10"
+              href={CONTACT.phoneHref}
+            >
               <Phone size={17} /> Позвонить
             </a>
           </div>
           <a
             href="#trust"
-            className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-[#66716a] transition-colors hover:text-[#173d35]"
+            className="mt-9 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-white/80 transition-colors hover:text-white"
           >
-            <span className="font-semibold text-[#173d35]">
-              4,9 <span className="font-normal text-[#66716a]">· 46 оценок</span>
+            <span className="font-semibold text-white">
+              4,9 <span className="font-normal text-white/75">· 46 оценок</span>
             </span>
             <span>43 отзыва</span>
             <span>26 фото в 2GIS</span>
-            <span className="font-medium text-[#173d35] underline underline-offset-4">
+            <span className="font-medium text-white underline underline-offset-4">
               Смотреть отзывы
             </span>
           </a>
-          <a
-            href="#works"
-            className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[#173d35] underline underline-offset-4"
-          >
-            Смотреть 26 работ
-          </a>
-          <p className="mt-3 text-sm text-[#66716a]">{CONTACT.address}</p>
-        </div>
-
-        <div className="relative min-h-[420px] overflow-hidden rounded-[2rem] bg-[#d7d4cc] shadow-[0_30px_80px_-35px_rgba(23,61,53,.35)] sm:min-h-[540px]">
-          <img
-            src={heroImage}
-            alt="Белое металлопластиковое окно, установленное в кирпичном доме — работа СПФ Регион Строй"
-            className="absolute inset-0 size-full object-cover"
-            loading="eager"
-            fetchPriority="high"
-            decoding="async"
-            width="1200"
-            height="1600"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#173d35]/70 via-transparent to-transparent" />
-          <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/30 bg-[#f7f4ee]/90 p-4 backdrop-blur-md sm:inset-x-7 sm:bottom-7 sm:p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.16em] text-[#6d756f]">Подберём решение</p>
-                <p className="mt-1 text-lg font-semibold text-[#173d35]">
-                  для квартиры, дома или бизнеса
-                </p>
-              </div>
-              <Ruler className="mt-1 text-[#b18b52]" size={22} />
-            </div>
+          <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            <a
+              href="#works"
+              className="inline-flex min-h-11 items-center font-medium text-white underline underline-offset-4"
+            >
+              Смотреть 26 работ
+            </a>
+            <span className="text-white/75">{CONTACT.address}</span>
           </div>
         </div>
+
       </section>
 
       <section id="solutions" className="mx-auto max-w-[1240px] px-5 pb-14 sm:px-8 lg:px-12">
@@ -952,7 +967,7 @@ function App() {
           href={whatsappHref}
           target="_blank"
           rel="noreferrer"
-          className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#b18b52] text-sm font-semibold text-[#fffdf9]"
+          className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#b18b52] text-sm font-semibold text-[#14201c]"
         >
           <MessageCircle size={17} /> WhatsApp
         </a>

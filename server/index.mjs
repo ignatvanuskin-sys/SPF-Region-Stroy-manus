@@ -297,22 +297,25 @@ const runDelivery = async (lead) => {
   return channels
 }
 
-const sendFile = async (response, filePath, status = 200) => {
+const sendFile = async (response, filePath, status = 200, headOnly = false) => {
   const content = await readFile(filePath)
-  const immutable = filePath.includes('assets') || filePath.includes('works')
+  const immutable =
+    filePath.includes('assets') || filePath.includes('works') || filePath.includes('hero')
   response.writeHead(status, {
     'Content-Type': MIME_TYPES[extname(filePath).toLowerCase()] || 'application/octet-stream',
+    'Content-Length': content.length,
     'Cache-Control': immutable ? 'public, max-age=31536000, immutable' : 'no-cache',
     ...SECURITY_HEADERS,
   })
-  response.end(content)
+  // HEAD должен вернуть те же заголовки, но без тела — иначе мониторинг и краулеры получают 404.
+  response.end(headOnly ? undefined : content)
 }
 
-const serveNotFound = async (response) => {
+const serveNotFound = async (response, headOnly = false) => {
   try {
     const page = resolve(STATIC_DIR, '404.html')
     const pageInfo = await stat(page)
-    if (pageInfo.isFile()) return sendFile(response, page, 404)
+    if (pageInfo.isFile()) return sendFile(response, page, 404, headOnly)
   } catch {
     // Если своей страницы нет — отдаём короткий текстовый ответ.
   }
@@ -321,6 +324,7 @@ const serveNotFound = async (response) => {
 }
 
 const serveStatic = async (request, response) => {
+  const headOnly = request.method === 'HEAD'
   const pathname = new URL(request.url || '/', 'http://localhost').pathname
   const decoded = safeDecode(pathname)
   if (decoded === null) return json(response, 400, { ok: false, error: 'Malformed URL' })
@@ -337,12 +341,12 @@ const serveStatic = async (request, response) => {
 
   try {
     const fileInfo = await stat(filePath)
-    if (fileInfo.isFile()) return sendFile(response, filePath)
+    if (fileInfo.isFile()) return sendFile(response, filePath, 200, headOnly)
   } catch {
     // Файла нет — отдаём страницу 404 со статусом 404 (не soft-404).
   }
 
-  return serveNotFound(response)
+  return serveNotFound(response, headOnly)
 }
 
 // Клиентских маршрутов у сайта нет, поэтому sitemap и robots собираются из адреса деплоя.
@@ -493,9 +497,10 @@ const server = createServer(async (request, response) => {
       return await handleLead(request, response)
     }
 
-    if (request.method === 'GET' && pathname === '/robots.txt') return serveRobots(request, response)
-    if (request.method === 'GET' && pathname === '/sitemap.xml') return serveSitemap(request, response)
-    if (request.method === 'GET') return await serveStatic(request, response)
+    const isRead = request.method === 'GET' || request.method === 'HEAD'
+    if (isRead && pathname === '/robots.txt') return serveRobots(request, response)
+    if (isRead && pathname === '/sitemap.xml') return serveSitemap(request, response)
+    if (isRead) return await serveStatic(request, response)
 
     return json(response, 404, { ok: false, error: 'Not found' })
   } catch (error) {
