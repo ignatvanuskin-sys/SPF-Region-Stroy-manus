@@ -3,37 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Кейс: сайт СПФ «Регион Строй» — окна и конструкции в Астане</title>
+    <title>Кейс: сайт и система обработки заявок СПФ «Регион Строй»</title>
     <meta
       name="description"
-      content="Кейс разработки: как AI-прототип лендинга оконной компании превратился в сайт с 26 реальными работами, проверяемыми данными и честным статусом заявки."
+      content="Кейс разработки: 16 публичных страниц, админка, приём заявок с защитой от дублей, уведомления в Telegram и реестр утверждений, который не даёт опубликовать непроверенный факт."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"
     />
     <style>
       /*
-        ЕДИНСТВЕННОЕ, ЧТО НУЖНО ЗАПОЛНИТЬ ПЕРЕД ПУБЛИКАЦИЕЙ — блок <footer id="author">.
-        Там пять значений в скобках: подпись автора, Telegram, WhatsApp, email и ссылка
-        на портфолио или GitHub. Плюс кнопка в шапке (<a id="live-link">): сейчас она ведёт
-        к блоку автора, а после деплоя её нужно переключить на адрес живой версии сайта.
+        ЕДИНСТВЕННОЕ, ЧТО НУЖНО ЗАПОЛНИТЬ ПЕРЕД ПУБЛИКАЦИЕЙ — блок <footer id="author">:
+        пять значений (подпись автора, Telegram, WhatsApp, email, портфолио/GitHub).
+        Всё остальное — факты проекта, проверенные 5 октября 2026.
       */
 
       :root {
-        --ink: #173d35;
-        --ink-2: #0f2b25;
-        --ink-soft: #5c665f;
-        --cream: #f7f4ee;
-        --cream-deep: #e9e5dc;
-        --paper: #fffdf9;
-        --gold: #b18b52;
-        --gold-soft: #d4b477;
-        --line: rgba(23, 61, 53, 0.12);
-        --was: #a0562f;
-        --now: #24614f;
+        /* Палитра взята у самого проекта: тёплый фон, графит, «стекло» и один CTA-цвет. */
+        --bg: #faf8f5;
+        --surface: #ffffff;
+        --surface-alt: #f4f1ec;
+        --line: #e7e1d8;
+        --ink: #14181c;
+        --ink-soft: #3d454c;
+        --ink-muted: #6b7178;
+        --glass: #0f6e7e;
+        --glass-deep: #0b4f5c;
+        --glass-soft: #e6f1f3;
+        --cta: #c2410c;
+        --cta-hover: #9a3412;
+        --dark: #14181c;
+        --dark-soft: #1e2429;
+        --on-dark: #f2efe9;
+        --on-dark-muted: #a8b0b7;
+        --accent-on-dark: #f0b492;
       }
 
       * {
@@ -46,9 +52,9 @@
 
       body {
         margin: 0;
-        background: var(--cream);
+        background: var(--bg);
         color: var(--ink);
-        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        font-family: Manrope, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
         font-size: 16px;
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
@@ -66,7 +72,7 @@
       }
 
       :focus-visible {
-        outline: 2px solid var(--gold);
+        outline: 2px solid var(--cta);
         outline-offset: 3px;
       }
 
@@ -82,31 +88,31 @@
         font-size: 12px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        color: var(--gold);
+        color: var(--cta);
       }
 
       h1,
       h2,
       h3 {
         margin: 0;
-        letter-spacing: -0.04em;
-        line-height: 1.1;
+        letter-spacing: -0.035em;
+        line-height: 1.12;
       }
 
       h1 {
-        font-size: clamp(30px, 5.4vw, 52px);
+        font-size: clamp(29px, 5.2vw, 50px);
         font-weight: 700;
       }
 
       h2 {
         font-size: clamp(23px, 3.2vw, 34px);
-        font-weight: 650;
-        letter-spacing: -0.045em;
+        font-weight: 700;
+        letter-spacing: -0.04em;
       }
 
       h3 {
         font-size: 18px;
-        font-weight: 600;
+        font-weight: 700;
         line-height: 1.3;
       }
 
@@ -117,8 +123,9 @@
       code {
         font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
         font-size: 0.88em;
-        background: var(--cream-deep);
-        padding: 2px 6px;
+        background: var(--surface-alt);
+        border: 1px solid var(--line);
+        padding: 1px 6px;
         border-radius: 6px;
         white-space: nowrap;
       }
@@ -129,9 +136,9 @@
         position: sticky;
         top: 0;
         z-index: 10;
-        background: rgba(23, 61, 53, 0.97);
+        background: rgba(20, 24, 28, 0.97);
         backdrop-filter: blur(8px);
-        color: var(--cream);
+        color: var(--on-dark);
         border-bottom: 1px solid rgba(255, 255, 255, 0.12);
       }
 
@@ -146,32 +153,30 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        gap: 2px;
-        font-weight: 600;
+        gap: 1px;
+        font-weight: 700;
         font-size: 15px;
-        letter-spacing: -0.01em;
-        color: var(--cream);
+        color: var(--on-dark);
         text-decoration: none;
         white-space: nowrap;
       }
 
       .brand span {
-        display: block;
-        font-weight: 400;
+        font-weight: 500;
         font-size: 11px;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        color: var(--gold-soft);
+        color: var(--accent-on-dark);
       }
 
       .nav {
         display: none;
         margin-left: auto;
-        gap: 4px;
+        gap: 2px;
       }
 
       .nav a {
-        color: rgba(233, 229, 220, 0.78);
+        color: var(--on-dark-muted);
         text-decoration: none;
         font-size: 14px;
         padding: 8px 10px;
@@ -181,7 +186,7 @@
 
       .nav a:hover {
         background: rgba(255, 255, 255, 0.1);
-        color: var(--cream);
+        color: var(--on-dark);
       }
 
       .btn {
@@ -193,8 +198,8 @@
         padding: 0 20px;
         border-radius: 999px;
         border: 1px solid transparent;
-        background: var(--gold);
-        color: var(--ink-2) !important;
+        background: var(--cta);
+        color: #ffffff !important;
         font-size: 14px;
         font-weight: 600;
         text-decoration: none;
@@ -202,17 +207,17 @@
       }
 
       .btn:hover {
-        background: #c39a5d;
+        background: var(--cta-hover);
       }
 
       .btn-ghost {
         background: transparent;
-        border-color: rgba(23, 61, 53, 0.25);
+        border-color: rgba(20, 24, 28, 0.22);
         color: var(--ink) !important;
       }
 
       .btn-ghost:hover {
-        background: rgba(23, 61, 53, 0.06);
+        background: rgba(20, 24, 28, 0.06);
       }
 
       .topbar .btn {
@@ -222,18 +227,18 @@
       /* ---------- ШАПКА КЕЙСА ---------- */
 
       .hero {
-        background: linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 100%);
-        color: var(--cream);
+        background: linear-gradient(180deg, var(--dark) 0%, var(--dark-soft) 100%);
+        color: var(--on-dark);
         padding: 56px 0 44px;
       }
 
       .hero .eyebrow {
-        color: var(--gold-soft);
+        color: var(--accent-on-dark);
       }
 
       .hero h1 {
         margin-top: 16px;
-        max-width: 19ch;
+        max-width: 21ch;
       }
 
       .hero .lead {
@@ -241,7 +246,7 @@
         max-width: 64ch;
         font-size: 17px;
         line-height: 1.7;
-        color: rgba(233, 229, 220, 0.82);
+        color: rgba(242, 239, 233, 0.82);
       }
 
       .hero-chips {
@@ -254,12 +259,11 @@
       .chip {
         display: inline-flex;
         align-items: center;
-        gap: 7px;
         padding: 7px 13px;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.18);
         font-size: 13px;
-        color: rgba(233, 229, 220, 0.9);
+        color: rgba(242, 239, 233, 0.9);
       }
 
       .hero-actions {
@@ -271,7 +275,7 @@
 
       .hero-actions .btn-ghost {
         border-color: rgba(255, 255, 255, 0.28);
-        color: var(--cream) !important;
+        color: var(--on-dark) !important;
       }
 
       .hero-actions .btn-ghost:hover {
@@ -281,7 +285,7 @@
       /* ---------- ПОЛОСА РЕЗУЛЬТАТА ---------- */
 
       .strip {
-        background: var(--paper);
+        background: var(--surface);
         border-bottom: 1px solid var(--line);
         padding: 26px 0;
       }
@@ -305,7 +309,7 @@
         margin-top: 4px;
         font-size: 13px;
         line-height: 1.45;
-        color: var(--ink-soft);
+        color: var(--ink-muted);
       }
 
       /* ---------- СЕКЦИИ ---------- */
@@ -319,17 +323,16 @@
       }
 
       .tint {
-        background: var(--cream-deep);
+        background: var(--surface-alt);
       }
 
       .dark {
-        background: var(--ink);
-        color: var(--cream);
+        background: var(--dark);
+        color: var(--on-dark);
       }
 
-      .dark .section-head p,
-      .dark .section-head .lead {
-        color: rgba(233, 229, 220, 0.8);
+      .dark .eyebrow {
+        color: var(--accent-on-dark);
       }
 
       .section-head {
@@ -346,22 +349,26 @@
         line-height: 1.7;
       }
 
+      .dark .section-head p,
+      .dark .lede {
+        color: rgba(242, 239, 233, 0.8);
+      }
+
       .idx {
         display: inline-block;
         margin-right: 10px;
         font-size: 12px;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.12em;
-        color: var(--gold);
       }
 
-      /* ---------- ОБЛОЖКА ---------- */
+      /* ---------- ИЗОБРАЖЕНИЯ ---------- */
 
       .shot {
         border: 1px solid var(--line);
-        border-radius: 18px;
+        border-radius: 16px;
         overflow: hidden;
-        background: var(--paper);
+        background: var(--surface);
       }
 
       .shot img {
@@ -376,7 +383,7 @@
         margin-top: 10px;
         font-size: 13px;
         line-height: 1.5;
-        color: var(--ink-soft);
+        color: var(--ink-muted);
       }
 
       figcaption b {
@@ -394,8 +401,8 @@
 
       .card {
         border: 1px solid var(--line);
-        border-radius: 18px;
-        background: var(--paper);
+        border-radius: 16px;
+        background: var(--surface);
         padding: 20px;
       }
 
@@ -408,9 +415,9 @@
       .card .num {
         flex: none;
         font-size: 12px;
-        font-weight: 600;
-        color: var(--gold);
-        letter-spacing: 0.08em;
+        font-weight: 700;
+        color: var(--cta);
+        letter-spacing: 0.06em;
       }
 
       .card p {
@@ -437,12 +444,12 @@
       }
 
       .signal {
-        border-color: rgba(177, 139, 82, 0.45);
-        background: #fdf9f1;
+        border-color: rgba(15, 110, 126, 0.35);
+        background: var(--glass-soft);
       }
 
       .signal .num {
-        color: #8d6a2e;
+        color: var(--glass-deep);
       }
 
       .dark .card {
@@ -452,96 +459,47 @@
 
       .dark .card p,
       .dark .card ul {
-        color: rgba(233, 229, 220, 0.78);
+        color: var(--on-dark-muted);
       }
 
       .dark .card strong {
-        color: var(--cream);
+        color: var(--on-dark);
       }
 
       .dark .card .num {
-        color: var(--gold-soft);
+        color: var(--accent-on-dark);
       }
 
-      .why-label {
-        display: inline-block;
-        margin-top: 14px;
-        padding: 5px 10px;
-        border-radius: 999px;
-        background: var(--cream-deep);
-        font-size: 11px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: #6d7a72;
-      }
-
-      .dark .why-label {
-        background: rgba(255, 255, 255, 0.1);
-        color: rgba(233, 229, 220, 0.75);
-      }
-
-      .dark .lede {
+      .note {
         margin-top: 18px;
-        max-width: 66ch;
-        font-size: 16px;
-        line-height: 1.7;
-        color: rgba(233, 229, 220, 0.82);
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--ink-muted);
       }
 
       .dark .note {
         max-width: 66ch;
-        color: rgba(233, 229, 220, 0.68);
+        color: rgba(242, 239, 233, 0.68);
       }
 
       footer {
         padding: 56px 0;
       }
-      /* ---------- СРАВНЕНИЕ БЫЛО / СТАЛО ---------- */
 
-      .cmp {
-        margin-top: 28px;
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        overflow: hidden;
-        background: var(--paper);
+      .contacts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
       }
 
-      .cmp-head,
-      .cmp-row {
-        display: grid;
-        grid-template-columns: 1.15fr 1fr 1fr;
-        gap: 20px;
-        padding: 14px 20px;
-      }
-
-      .cmp-head {
-        background: var(--cream-deep);
-        font-size: 11px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: #6d7a72;
-      }
-
-      .cmp-row + .cmp-row {
-        border-top: 1px solid var(--line);
-      }
-
-      .cmp-row {
-        font-size: 15px;
-        line-height: 1.6;
-      }
-
-      .cmp-row .k {
-        font-weight: 600;
-      }
-
-      .cmp-row .was {
-        color: var(--was);
-      }
-
-      .cmp-row .now {
-        color: var(--now);
-        font-weight: 500;
+      .ph {
+        display: inline-block;
+        padding: 10px 16px;
+        border: 1px dashed rgba(240, 180, 146, 0.55);
+        border-radius: 999px;
+        font-size: 14px;
+        color: var(--accent-on-dark);
       }
 
       /* ---------- ЭКРАНЫ ---------- */
@@ -554,6 +512,20 @@
 
       .shots .narrow {
         max-width: 420px;
+      }
+
+      /*
+        Полная страница главной — 1440 × 6357 px. Показываем верхнюю часть кадром,
+        иначе один снимок растянул бы раздел на четыре тысячи пикселей прокрутки.
+      */
+      .cover {
+        margin-top: 30px;
+      }
+
+      .cover .shot img {
+        max-height: 560px;
+        object-fit: cover;
+        object-position: top center;
       }
 
       /* ---------- ЦИФРЫ ---------- */
@@ -569,10 +541,11 @@
         grid-template-columns: 1fr auto;
         align-items: baseline;
         gap: 16px;
+        min-width: 0;
         padding: 16px 18px;
         border: 1px solid var(--line);
-        border-radius: 16px;
-        background: var(--paper);
+        border-radius: 14px;
+        background: var(--surface);
       }
 
       .metric .label {
@@ -582,7 +555,7 @@
 
       .metric .value {
         font-size: 17px;
-        font-weight: 650;
+        font-weight: 700;
         white-space: nowrap;
       }
 
@@ -590,18 +563,11 @@
         display: block;
         font-size: 12px;
         font-weight: 400;
-        color: var(--ink-soft);
+        color: var(--ink-muted);
         text-align: right;
       }
 
-      .note {
-        margin-top: 18px;
-        font-size: 13px;
-        line-height: 1.6;
-        color: var(--ink-soft);
-      }
-
-      /* ---------- ТАЙМЛАЙН ---------- */
+      /* ---------- ЭТАПЫ ---------- */
 
       .tl {
         display: grid;
@@ -614,16 +580,16 @@
         gap: 8px;
         padding: 18px 20px;
         border: 1px solid var(--line);
-        border-radius: 18px;
-        background: var(--paper);
+        border-radius: 16px;
+        background: var(--surface);
       }
 
       .tl-item .when {
         font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 0.12em;
+        font-weight: 700;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
-        color: var(--gold);
+        color: var(--cta);
       }
 
       .tl-item p {
@@ -633,15 +599,15 @@
         color: var(--ink-soft);
       }
 
-      /* ---------- ИСТОЧНИКИ ---------- */
+      /* ---------- СПИСОК ССЫЛОК ---------- */
 
       .sources {
         margin: 26px 0 0;
         padding: 20px;
         list-style: none;
         border: 1px solid var(--line);
-        border-radius: 18px;
-        background: var(--paper);
+        border-radius: 16px;
+        background: var(--surface);
         font-size: 15px;
         line-height: 1.6;
       }
@@ -650,25 +616,7 @@
         margin-top: 12px;
       }
 
-      /* ---------- АВТОР ---------- */
-
-      .contacts {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 20px;
-      }
-
-      .ph {
-        display: inline-block;
-        padding: 10px 16px;
-        border: 1px dashed rgba(212, 180, 119, 0.55);
-        border-radius: 999px;
-        font-size: 14px;
-        color: var(--gold-soft);
-      }
-
-      /* ---------- МОБИЛЬНЫЕ ПРАВКИ ---------- */
+      /* ---------- АДАПТИВ ---------- */
 
       @media (min-width: 700px) {
         .strip .wrap {
@@ -697,10 +645,7 @@
         }
       }
 
-      /*
-        Меню включается только с 1000 px: раньше оно появлялось на 700 px и вместе с логотипом и
-        кнопкой давало 980 px ширины — переполнение на 700–960 px.
-      */
+      /* Меню включаем с 1000 px: ниже логотип, меню и кнопка не помещаются в строку. */
       @media (min-width: 1000px) {
         .nav {
           display: flex;
@@ -708,34 +653,6 @@
       }
 
       @media (max-width: 699px) {
-        .cmp-head {
-          display: none;
-        }
-
-        .cmp-row {
-          grid-template-columns: 1fr;
-          gap: 8px;
-          padding: 16px 18px;
-        }
-
-        .cmp-row span::before {
-          content: attr(data-k) " ";
-          display: block;
-          font-size: 11px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: #6d7a72;
-          font-weight: 600;
-        }
-
-        .cmp-row .k::before {
-          content: "";
-        }
-
-        /*
-          На узком экране значения метрик не растягивают карточки:
-          раньше white-space: nowrap давал горизонтальный скролл 390 → 513 px.
-        */
         .metric {
           grid-template-columns: 1fr;
           gap: 6px;
@@ -749,7 +666,7 @@
           text-align: left;
         }
 
-        /* Длинные идентификаторы и ссылки переносятся, а не растягивают блок. */
+        /* Длинные идентификаторы переносятся, а не растягивают блок. */
         code {
           white-space: normal;
           overflow-wrap: anywhere;
@@ -786,7 +703,7 @@
         }
 
         .hero .eyebrow {
-          color: var(--gold);
+          color: var(--cta);
         }
 
         .chip {
@@ -814,11 +731,6 @@
           color: var(--ink);
         }
 
-        .dark .why-label {
-          background: var(--cream-deep);
-          color: #6d7a72;
-        }
-
         section {
           padding: 18px 0;
         }
@@ -826,7 +738,6 @@
         .card,
         .metric,
         .tl-item,
-        .cmp-row,
         figure {
           page-break-inside: avoid;
         }
@@ -854,46 +765,44 @@
           <span>СПФ «Регион Строй»</span>
         </a>
         <nav class="nav" aria-label="Разделы кейса">
-          <a href="#start">Задача</a>
-          <a href="#done">Что сделано</a>
+          <a href="#task">Задача</a>
+          <a href="#build">Что построено</a>
+          <a href="#flow">Поток заявки</a>
           <a href="#why">Решения</a>
           <a href="#shots">Экраны</a>
-          <a href="#numbers">Цифры</a>
           <a href="#limits">Ограничения</a>
         </nav>
-        <!-- Когда сайт будет задеплоен, замените href на адрес живой версии и текст на «Смотреть сайт». -->
-        <a class="btn" id="live-link" href="#author">Связаться</a>
+        <a class="btn" href="https://spf-region-stroy.vercel.app" target="_blank" rel="noreferrer"
+          >Открыть сайт</a
+        >
       </div>
     </div>
+
     <header class="hero" id="top">
       <div class="wrap">
-        <p class="eyebrow">Кейс · лендинг и форма заявки</p>
-        <h1>СПФ «Регион Строй»: сайт, который не пришлось придумывать</h1>
+        <p class="eyebrow">Кейс · сайт и внутренняя система</p>
+        <h1>СПФ «Регион Строй»: сайт, который доводит заявку до менеджера</h1>
         <p class="lead">
-          Компания по производству и монтажу окон, дверей и фасадных витражей в Астане. Задача
-          была не «сделать красиво», а превратить сгенерированный прототип в сайт, который
-          владелец может показать и запустить, — так, чтобы каждое утверждение на странице было
-          подтверждено реальными данными компании.
+          Шестнадцать публичных страниц, админка вокруг них, приём заявок с защитой от дублей и
+          уведомлениями в Telegram. И правило, которое оказалось важнее кода: на сайте не публикуется
+          ни один факт, который нельзя подтвердить.
         </p>
 
         <div class="hero-chips">
-          <span class="chip">React + TypeScript</span>
-          <span class="chip">Vite</span>
+          <span class="chip">Next.js 15 · App Router</span>
+          <span class="chip">TypeScript</span>
           <span class="chip">Tailwind CSS v4</span>
-          <span class="chip">Node-сервер без фреймворка</span>
-          <span class="chip">Docker + Railway</span>
-          <span class="chip">3 дня: 3–5 октября 2026</span>
+          <span class="chip">PostgreSQL</span>
+          <span class="chip">Zod</span>
+          <span class="chip">Telegram Bot API</span>
+          <span class="chip">Vercel</span>
         </div>
 
         <div class="hero-actions">
-          <a class="btn" href="#shots">Посмотреть экраны</a>
-          <a
-            class="btn btn-ghost"
-            href="https://2gis.kz/astana/firm/70000001042561575"
-            target="_blank"
-            rel="noreferrer"
-            >Карточка компании в 2ГИС</a
+          <a class="btn" href="https://spf-region-stroy.vercel.app" target="_blank" rel="noreferrer"
+            >Открыть живой сайт</a
           >
+          <a class="btn btn-ghost" href="#shots">Смотреть экраны</a>
         </div>
       </div>
     </header>
@@ -901,265 +810,234 @@
     <div class="strip">
       <div class="wrap">
         <div>
-          <b>26</b>
-          <small>реальных работ в галерее — было ноль, вместо них стояла демонстрационная картинка</small>
+          <b>16</b>
+          <small>публичных страниц: шесть услуг, расчёт, замер, работы, отзывы, о компании, для организаций, контакты, FAQ, политика</small>
         </div>
         <div>
-          <b>5,2 МБ → 158 КБ</b>
-          <small>вес первого экрана: вместо внешнего файла, отдававшего ошибку 403</small>
+          <b>12</b>
+          <small>разделов админки — от карточки заявки до реестра утверждений и QR-кодов источников</small>
         </div>
         <div>
-          <b>0</b>
-          <small>ошибок консоли и переполнения по ширине на 390, 414, 700, 768, 1024 и 1440 px</small>
+          <b>15</b>
+          <small>API-маршрутов: заявки, замеры, уведомления, выгрузки и пять задач cron</small>
         </div>
         <div>
-          <b>8,3 / 10</b>
-          <small>оценка по внутреннему бенчмарку из 37 сайтов ниши — было 7,7</small>
+          <b>71</b>
+          <small>модульный и интеграционный тест в пяти файлах — подсчёт совпал с документацией проекта</small>
         </div>
       </div>
     </div>
 
-    <section id="start">
+    <section id="task">
       <div class="wrap">
         <div class="section-head">
-          <p class="eyebrow"><span class="idx">01</span>Точка старта</p>
-          <h2>Прототип решал задачу шаблона, а не компании</h2>
+          <p class="eyebrow"><span class="idx">01</span>Задача</p>
+          <h2>Три требования, из которых выросла архитектура</h2>
           <p>
-            У компании уже была публичная карточка в 2ГИС: рейтинг 4,9, 43 отзыва, 26 фотографий
-            работ, два телефона и адрес в Астане. У сайта не было почти ничего из этого — и это
-            главная проблема, а не оформление.
+            Компания из Астаны: окна ПВХ и алюминий, витражи и фасады, входные двери, перегородки,
+            остекление балконов. Карточка в 2ГИС даёт 4,9 из 5 по 46 оценкам и 43 отзыва — материал
+            для доверия уже был. Не было сайта, который этим пользуется.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card">
+            <h3>Сайт должен приводить заявку</h3>
+            <p>
+              Не «рассказать о себе», а посчитать, записать и передать: мастер расчёта по параметрам,
+              запись на замер с выбором слота и отдельная форма для организаций.
+            </p>
+          </article>
+          <article class="card signal">
+            <h3>Ни одного непроверенного факта</h3>
+            <p>
+              Цена, гарантия, сроки изготовления, бренды профилей, режим работы — публикуются только
+              после подтверждения владельцем. Иначе это недостоверная реклама, а не смелость.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Заявка не должна теряться</h3>
+            <p>
+              Ни из-за сбоя Telegram, ни из-за двойного клика, ни из-за повторного обращения того же
+              клиента через час.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="build" class="tint">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow"><span class="idx">02</span>Что построено</p>
+          <h2>Публичный сайт и рабочая админка вокруг него</h2>
+          <p>
+            Это не витрина с формой «оставьте телефон». Публичная часть, приём заявок, уведомления,
+            админка и аналитика источников — один проект, который разворачивается одной базой.
           </p>
         </div>
 
         <div class="grid-2">
           <article class="card">
-            <h3>Что было в проекте</h3>
-            <ul>
-              <li>Демонстрационная картинка вместо фотографий работ.</li>
-              <li>Галереи, кейсов и отзывов нет вовсе.</li>
-              <li>Маска телефона искажает казахстанские номера.</li>
-              <li>Мёртвые ассеты шаблона Vite и служебные файлы в репозитории.</li>
-            </ul>
+            <h3><span class="num">01</span> 16 публичных страниц</h3>
+            <p>
+              Главная, шесть страниц услуг (ПВХ, алюминиевые окна, витражи и фасады, входные двери,
+              перегородки, балконы), мастер расчёта <code>/raschet</code>, запись на замер
+              <code>/zamer</code>, работы, отзывы, о компании, для организаций, контакты, FAQ и
+              политика конфиденциальности.
+            </p>
           </article>
+
           <article class="card">
-            <h3>Задача, которую я поставил</h3>
-            <ul>
-              <li>Собрать подтверждаемую доказательную базу из открытых данных компании.</li>
-              <li>Починить всё, что ломает заявку: телефон, мобильную панель, калькулятор.</li>
-              <li>Не придумать ни одной цены, гарантии и отзыва, которых нет.</li>
-              <li>Довести до состояния «можно показывать владельцу» и описать путь до запуска.</li>
-            </ul>
+            <h3><span class="num">02</span> Дизайн-система «Свет и геометрия»</h3>
+            <p>
+              Мотив оконной рамы, тонкие линии, тёплый фон <code>#FAF8F5</code> и графит
+              <code>#14181C</code>. Один акцентный цвет — <code>#C2410C</code>: его затемнили с
+              <code>#EA580C</code> ровно настолько, чтобы белый текст кнопки проходил WCAG AA
+              (4,5:1). Шрифт Manrope самохостится через <code>next/font</code> — внешних запросов нет.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3><span class="num">03</span> Мобильный — как основной</h3>
+            <p>
+              Закреплённая нижняя панель действий, зоны нажатия не меньше 44 px, поля ввода не меньше
+              16 px (иначе iOS зумит страницу при фокусе), корректная работа с экранной клавиатурой и
+              безопасной зоной iPhone.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3><span class="num">04</span> Админка на 12 разделов</h3>
+            <p>
+              Обзор, заявки, карточка заявки, замеры, галерея, отзывы, утверждения, ссылки и QR,
+              уведомления, настройки, смена пароля и вход. Три роли — <code>owner</code>,
+              <code>manager</code>, <code>viewer</code>; сессия — подписанная httpOnly-cookie на
+              семь дней, пароли только через bcrypt.
+            </p>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="tint">
+    <section id="flow">
       <div class="wrap">
         <div class="section-head">
-          <p class="eyebrow"><span class="idx">02</span>Что было не так</p>
-          <h2>Пять проблем, из-за которых сайт нельзя было показывать</h2>
-          <p>Ниже — не общие слова, а зафиксированные дефекты с проверкой в браузере и в сборке.</p>
+          <p class="eyebrow"><span class="idx">03</span>Поток заявки</p>
+          <h2>Что происходит после нажатия кнопки</h2>
+          <p>
+            Пять шагов, и каждый закрывает конкретный способ потерять клиента — самый дорогой из
+            которых выглядит как «форма работает».
+          </p>
         </div>
 
-        <div class="grid-2">
+        <div class="grid-3">
           <article class="card">
-            <h3><span class="num">01</span> Первый экран тормозил загрузку</h3>
+            <h3><span class="num">01</span> Приём и проверки</h3>
             <p>
-              Главное изображение весило около <strong>5,2 МБ</strong> и грузилось с внешнего CDN,
-              который отдавал ошибку <code>403</code>. Это первое, что видел посетитель.
-            </p>
-          </article>
-
-          <article class="card">
-            <h3><span class="num">02</span> Ноль доказательств</h3>
-            <p>
-              На сайте было <strong>0 фотографий</strong>, <strong>0 отзывов</strong> и
-              <strong>0 кейсов</strong> — при том, что в карточке компании уже лежали 26 фото и
-              43 отзыва. Клиент не мог увидеть результат, который получит.
+              <code>POST /api/leads</code>: проверка origin, лимит по IP, honeypot и тайминг
+              заполнения, Turnstile (если настроен), валидация схемы на Zod и отдельный лимит по
+              номеру телефона.
             </p>
           </article>
 
           <article class="card signal">
-            <h3><span class="num">03</span> Форма портила номер телефона</h3>
+            <h3><span class="num">02</span> Сначала база, потом уведомление</h3>
             <p>
-              Маска считала первую цифру кодом страны. Обычный ввод <code>7018936787</code>
-              превращался в <code>+7 (018) 936-78-7</code>, а заявка при этом успешно
-              «отправлялась» — то есть менеджер получил бы неверный номер.
-            </p>
-            <p>
-              <strong>Главная находка:</strong> внешне работающая форма молча теряла клиента.
+              Заявка записывается в хранилище <strong>до</strong> отправки сообщения. Сбой Telegram
+              не может унести с собой клиента.
             </p>
           </article>
 
           <article class="card">
-            <h3><span class="num">04</span> Мобильная версия ломала действия</h3>
-            <ul>
-              <li>Липкая панель с кнопками «Позвонить» и «WhatsApp» фактически не была липкой.</li>
-              <li>Главная кнопка калькулятора имела высоту <strong>20 px</strong> — выглядела полоской.</li>
-              <li>Кнопка мобильного меню — <strong>38×38 px</strong>, ниже минимума 44 px.</li>
-              <li>На планшетах 640–1023 px расходилась навигация.</li>
-            </ul>
+            <h3><span class="num">03</span> Идемпотентность</h3>
+            <p>
+              У каждой отправки свой <code>submissionId</code>: двойной клик по кнопке не создаёт
+              вторую заявку и не портит статистику.
+            </p>
           </article>
 
           <article class="card">
-            <h3><span class="num">05</span> Следы шаблона в проекте</h3>
+            <h3><span class="num">04</span> Дедупликация</h3>
             <p>
-              В сборке оставались мёртвые ассеты стартового шаблона Vite, а в репозиторий попадали
-              служебные скрипты QA-агентов. Мелочь, но именно она отличает «сайт по шаблону» от
-              проекта, который можно отдать заказчику.
+              Тот же телефон в течение 24 часов не создаёт дубль — к существующей заявке добавляется
+              событие «повторное обращение». Менеджер видит историю, а не список клонов.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3><span class="num">05</span> Доставка менеджеру</h3>
+            <p>
+              Уведомление уходит сразу и повторяется по cron при сбое. Если Telegram недоступен —
+              запасное письмо и красная пометка в админке. Молча не теряется ничего.
             </p>
           </article>
         </div>
       </div>
     </section>
 
-    <section id="done">
-      <div class="wrap">
-        <div class="section-head">
-          <p class="eyebrow"><span class="idx">03</span>Что сделано</p>
-          <h2>Семь шагов, которые превратили шаблон в проект</h2>
-        </div>
-
-        <div class="grid-2">
-          <article class="card">
-            <h3><span class="num">01</span> Данные вместо догадок</h3>
-            <p>
-              Из публичной карточки компании извлечены <strong>все 26 фотографий</strong> и
-              <strong>все 43 отзыва</strong> дословно. Это же подтвердило факты, которые раньше
-              нельзя было заявлять: график работы, второй телефон, перегородки, входные двери и
-              тип предприятия «производство».
-            </p>
-          </article>
-
-          <article class="card">
-            <h3><span class="num">02</span> Галерея на 26 реальных работ</h3>
-            <p>
-              Masonry-сетка (2 колонки на мобильном, 3 на планшете, 4 на десктопе) и лайтбокс:
-              стрелки влево-вправо, счётчик «N / 26», Escape, закрытие по фону, возврат фокуса и
-              блокировка прокрутки. Сначала показываются 10 работ, остальные — по кнопке.
-            </p>
-          </article>
-
-          <article class="card">
-            <h3><span class="num">03</span> Первый экран на реальной работе</h3>
-            <p>
-              Демонстрационная картинка удалена из проекта полностью. Вместо неё — фотография
-              компании в WebP весом <strong>158 КБ</strong> вместо 5,2 МБ, с
-              <code>fetchpriority=high</code> и реальными размерами. Обложка для соцсетей собрана
-              из того же кадра.
-            </p>
-          </article>
-
-          <article class="card signal">
-            <h3><span class="num">04</span> Форма, которая не теряет клиента</h3>
-            <p>
-              Маска переписана на детерминированную схему: код <code>+7</code> вынесен статичным
-              префиксом и больше не входит в значение. Ввод <code>7018936787</code>,
-              <code>87018936787</code> и вставка <code>+7 (701) 893-67-87</code> дают один и тот же
-              результат. Логика закрыта <strong>22 проверками</strong> и сквозным тестом в браузере.
-            </p>
-          </article>
-
-          <article class="card">
-            <h3><span class="num">05</span> Принцип «не выдумывать»</h3>
-            <p>
-              На сайте нет цен, гарантий, сертификатов и наград, которые нельзя подтвердить. Экран
-              результата не говорит «заявка передана менеджеру», пока сервер не подтвердил
-              доставку: при ошибке клиент видит честный статус, кнопки WhatsApp и телефона и не
-              теряет заполненные данные.
-            </p>
-          </article>
-
-          <article class="card">
-            <h3><span class="num">06</span> SEO и доступность</h3>
-            <p>
-              JSON-LD <code>LocalBusiness</code> с часами работы и ссылками, динамические
-              <code>sitemap.xml</code> и <code>robots.txt</code>, реальная страница 404, alt для
-              всех 26 фотографий. В интерфейсе — <code>focus-visible</code>,
-              <code>aria-live</code> для калькулятора и отключение анимаций при
-              <code>prefers-reduced-motion</code>.
-            </p>
-          </article>
-
-          <article class="card">
-            <h3><span class="num">07</span> Инфраструктура и демо-режим</h3>
-            <p>
-              Node-сервер без фреймворка принимает заявки на <code>/api/leads</code>, отдаёт
-              <code>/api/health</code> и защищён от дублей и флуда; для деплоя подготовлены
-              <code>Dockerfile</code> и <code>railway.toml</code>. Один флаг
-              <code>DEMO_MODE</code> переключает сайт в режим показа: форма проходит все шаги, но
-              не делает <strong>ни одного сетевого запроса</strong> и ничего не сохраняет.
-            </p>
-          </article>
-        </div>
-      </div>
-    </section>
     <section id="why" class="dark">
       <div class="wrap">
         <div class="section-head">
           <p class="eyebrow"><span class="idx">04</span>Решения</p>
           <h2>Что выбрано и почему именно так</h2>
           <p>
-            Технические решения в этом проекте почти всегда выбирались не по принципу «модно», а по
-            принципу «что выдержит эксплуатацию у небольшой компании».
+            Шесть решений, которые определяют проект. Четыре из них — про то, как не соврать клиенту
+            и не потерять его заявку.
           </p>
         </div>
 
         <div class="grid-2">
           <article class="card">
-            <h3><span class="num">01</span> Статика на React + Vite, а не конструктор</h3>
+            <h3><span class="num">01</span> Реестр утверждений вместо «заполним потом»</h3>
             <p>
-              Одна страница целиком статическая: сборка проходит за ≈0,3 с, хостинг копеечный,
-              разметка, скорость и SEO под полным контролем. Конструктор дал бы быстрые правки, но
-              забрал бы контроль над разметкой и добавил внешний рантайм.
+              <code>content/claims.ts</code> — механизм, который физически не даёт опубликовать
+              непроверенный факт: вместо него на странице стоит нейтральная формулировка. Ответ
+              владельца из админки появляется на сайте сразу, без деплоя.
             </p>
           </article>
 
           <article class="card">
-            <h3><span class="num">02</span> Свой Node-сервер вместо serverless-функций</h3>
+            <h3><span class="num">02</span> Цены выключены по умолчанию</h3>
             <p>
-              Serverless-платформа не запускает Node-процесс: заявка туда уходила и получала
-              <code>404</code>. Приём заявок требует канала доставки, лимитов и постоянного диска,
-              поэтому в проекте <code>Dockerfile</code> и <code>railway.toml</code> с healthcheck
-              <code>/api/health</code>.
+              <code>PRICE_DISPLAY=off</code>: в ответе API нет ни одного числа расчёта. Проверено на
+              живом сайте — ни одной цены ни на одной из шестнадцати страниц.
             </p>
           </article>
 
           <article class="card">
-            <h3><span class="num">03</span> Только свои фотографии и подписанный источник</h3>
+            <h3><span class="num">03</span> Бизнес-логика не знает о транспорте</h3>
             <p>
-              Чужие снимки в портфолио не использовались: все 26 кадров — материалы самой компании,
-              у каждого указан источник, а часть снимков прислана клиентами, о чём прямо сказано в
-              галерее. Права на 7 кадров из отзывов вынесены отдельным вопросом владельцу.
+              Логика приёма заявки живёт в <code>lib/domain</code> и вызывается одинаково из
+              HTTP-маршрута, Telegram-бота и cron. Добавить WhatsApp-бота в следующей фазе можно, не
+              переписывая ядро.
             </p>
           </article>
 
           <article class="card">
-            <h3><span class="num">04</span> Никаких цен, пока прайс не подтверждён</h3>
+            <h3><span class="num">04</span> Два драйвера хранилища</h3>
             <p>
-              Одинаковые на вид окна отличаются в цене в разы, поэтому вместо выдуманной ставки на
-              сайте стоит блок «Про цену честно» с объяснением состава суммы. В коде для этого готов
-              флаг <code>PRICES_APPROVED</code>: одна строка — и в калькуляторе появляются суммы.
+              PostgreSQL в продакшне и JSON-файл, чтобы проект запускался одной командой без базы.
+              Драйвер переключается автоматически по <code>DATABASE_URL</code>. Файловый режим —
+              только для разработки и демонстрации, и это ограничение описано честно.
             </p>
           </article>
 
           <article class="card">
-            <h3><span class="num">05</span> Демо-режим вместо ложной галочки</h3>
+            <h3><span class="num">05</span> Галерея не заполняется чужими снимками</h3>
             <p>
-              Пока канал доставки не подключён, надпись «заявка отправлена» была бы враньём. В
-              демо-режиме запрос физически невозможен: строки <code>api/leads</code> в собранном
-              бандле <strong>0 вхождений</strong>. Клиент видит тестовый номер и пометку, что данные
-              никуда не ушли.
+              Фотографии из 2ГИС и Instagram не берутся: у площадок и авторов есть права на контент.
+              Пока владелец не загрузил свои работы, блок на сайте просто не показывается, а на
+              странице «Работы» сказано, почему он пуст.
             </p>
           </article>
 
           <article class="card">
-            <h3><span class="num">06</span> Детерминированная маска телефона</h3>
+            <h3><span class="num">06</span> Замер — запрос, а не «запись подтверждена»</h3>
             <p>
-              «Умная» логика с первой цифрой как кодом страны ломается на казахстанских номерах,
-              которые сами начинаются с 7. Вместо эвристики — фиксированный префикс
-              <code>+7</code> и работа только с 10 локальными цифрами, плюс 22 проверки.
+              Клиент выбирает слот, но запись подтверждает менеджер кнопкой в Telegram. Без
+              SMS-подтверждения автоматически подтверждать запись означало бы открыть её для чужих
+              правок.
             </p>
           </article>
         </div>
@@ -1171,239 +1049,188 @@
         <div class="section-head">
           <p class="eyebrow"><span class="idx">05</span>Экраны</p>
           <h2>Как это выглядит в работе</h2>
-          <p>Скриншоты сделаны при проверке сборки: мобильная ширина 390 px и десктоп 1440 px.</p>
+          <p>
+            Снимки живого сайта от 5 октября 2026. На первом заходе виден баннер согласия на
+            аналитику — это тоже часть решения: сторонние счётчики и свои обезличенные события
+            подключаются только после явного разрешения.
+          </p>
+        </div>
+
+        <div class="cover">
+          <figure>
+            <div class="shot">
+              <img
+                src="img/home-desktop-1440.png"
+                width="1440"
+                height="6357"
+                alt="Главная страница сайта целиком: первый экран, услуги, процесс, отзывы, расчёт и контакты"
+              />
+            </div>
+            <figcaption>
+              <b>Главная целиком.</b> Снимок 1440 × 6357 px, здесь показана верхняя часть страницы.
+            </figcaption>
+          </figure>
         </div>
 
         <div class="shots">
-          <figure>
-            <div class="shot">
-              <img
-                src="img/desktop-hero.png"
-                width="1440"
-                height="900"
-                alt="Первый экран сайта: реальная работа компании на весь экран, заголовок и кнопки"
-              />
-            </div>
-            <figcaption>
-              <b>Первый экран, 1440×900.</b> Фон — реальная работа компании: алюминиевая конструкция
-              из карточки 2ГИС, а не стоковое изображение.
-            </figcaption>
-          </figure>
-
           <figure class="narrow">
             <div class="shot">
               <img
-                src="img/mobile-demo-390.png"
+                src="img/home-mobile-390.png"
                 width="390"
                 height="844"
-                alt="Мобильный экран: подтверждение заявки в демо-режиме с тестовым номером"
+                alt="Первый экран сайта на телефоне: заголовок, кнопки расчёта и WhatsApp, рейтинг 2ГИС"
               />
             </div>
             <figcaption>
-              <b>Мобильный, 390 px.</b> Экран после отправки честно сообщает: заявка заполнена в
-              демо-режиме, номер тестовый, данные никуда не отправлены.
-            </figcaption>
-          </figure>
-
-          <figure class="narrow">
-            <div class="shot">
-              <img
-                src="img/gallery-lightbox.png"
-                width="390"
-                height="844"
-                alt="Лайтбокс галереи работ со счётчиком и подписью кадра"
-              />
-            </div>
-            <figcaption>
-              <b>Галерея.</b> Счётчик «N / 26», стрелки, Escape и возврат фокуса на карточку, из
-              которой открыли просмотр.
-            </figcaption>
-          </figure>
-
-          <figure class="narrow">
-            <div class="shot">
-              <img src="img/faq.png" width="390" height="844" alt="Раздел FAQ с раскрытым вопросом" />
-            </div>
-            <figcaption>
-              <b>FAQ.</b> Восемь вопросов: цены, замер, фото объекта, работа с коммерческими
-              объектами. Ответы раскрываются на месте.
-            </figcaption>
-          </figure>
-
-          <figure class="narrow">
-            <div class="shot">
-              <img
-                src="img/honest-error.png"
-                width="390"
-                height="844"
-                alt="Экран ошибки: заявка не отправлена, предложены WhatsApp и телефон"
-              />
-            </div>
-            <figcaption>
-              <b>Сценарий ошибки.</b> Когда сервер вернул 404, сайт не показал зелёную галочку, а
-              предложил WhatsApp и телефон и сохранил заполненные данные.
+              <b>Первый экран на телефоне, 390 px.</b> Заголовок, два действия — расчёт и WhatsApp, и
+              рейтинг 2ГИС со ссылкой на отзывы.
             </figcaption>
           </figure>
 
           <figure>
             <div class="shot">
               <img
-                src="img/success-desktop-1440.png"
+                src="img/calc-raschet-1440.png"
                 width="1440"
                 height="900"
-                alt="Подтверждение заявки в демо-режиме на десктопе"
+                alt="Мастер расчёта: шаг 1 из 4 с выбором типа конструкции и карточкой рейтинга"
               />
             </div>
             <figcaption>
-              <b>Тот же сценарий, 1440 px.</b> Тестовый номер и явная пометка, что данные не ушли ни
-              на сервер, ни в браузер.
+              <b>Мастер расчёта, шаг 1 из 4.</b> Выбор типа конструкции плитками, рядом — рейтинг
+              2ГИС с датой сверки и объяснение, что произойдёт после отправки.
+            </figcaption>
+          </figure>
+
+          <figure>
+            <div class="shot">
+              <img
+                src="img/service-okna-pvh-1440.png"
+                width="1440"
+                height="900"
+                alt="Страница услуги «Окна ПВХ»"
+              />
+            </div>
+            <figcaption>
+              <b>Страница услуги <code>/okna-pvh</code>.</b> Шесть направлений разведены по отдельным
+              страницам со своей структурой, а не свалены списком на главной.
+            </figcaption>
+          </figure>
+
+          <figure>
+            <div class="shot">
+              <img
+                src="img/booking-zamer-1440.png"
+                width="1440"
+                height="900"
+                alt="Страница записи на замер с выбором даты и времени"
+              />
+            </div>
+            <figcaption>
+              <b>Запись на замер, <code>/zamer</code>.</b> Клиент выбирает слот, но запись
+              подтверждает менеджер кнопкой в Telegram — до подтверждения это запрос, а не бронь.
+            </figcaption>
+          </figure>
+
+          <figure>
+            <div class="shot">
+              <img
+                src="img/reviews-otzyvy-1440.png"
+                width="1440"
+                height="900"
+                alt="Страница отзывов с рейтингом 2ГИС и ссылкой на источник"
+              />
+            </div>
+            <figcaption>
+              <b>Отзывы, <code>/otzyvy</code>.</b> Рейтинг 2ГИС со ссылкой на источник; дословные
+              цитаты появятся только с согласия их авторов.
             </figcaption>
           </figure>
         </div>
       </div>
     </section>
 
-    <section class="tint">
+    <section id="numbers" class="tint">
       <div class="wrap">
         <div class="section-head">
-          <p class="eyebrow"><span class="idx">06</span>Было → стало</p>
-          <h2>Изменения, которые можно проверить</h2>
-        </div>
-
-        <div class="cmp">
-          <div class="cmp-head">
-            <span>Что</span>
-            <span>Было</span>
-            <span>Стало</span>
-          </div>
-
-          <div class="cmp-row">
-            <span class="k">Фотографии работ</span>
-            <span class="was" data-k="Было">Демонстрационная картинка</span>
-            <span class="now" data-k="Стало">26 реальных фото компании в WebP</span>
-          </div>
-
-          <div class="cmp-row">
-            <span class="k">Отзывы и рейтинг</span>
-            <span class="was" data-k="Было">Не показывались</span>
-            <span class="now" data-k="Стало"
-              >6 отзывов дословно, 4,9 из 5 — со ссылкой на источник</span
-            >
-          </div>
-
-          <div class="cmp-row">
-            <span class="k">Первый экран</span>
-            <span class="was" data-k="Было">≈5,2 МБ, внешний CDN, ответ 403</span>
-            <span class="now" data-k="Стало"
-              >158 КБ, локальный WebP, <code>fetchpriority=high</code></span
-            >
-          </div>
-
-          <div class="cmp-row">
-            <span class="k">Номер телефона в форме</span>
-            <span class="was" data-k="Было"><code>7018936787</code> → <code>+7 (018) 936-78-7</code></span>
-            <span class="now" data-k="Стало"><code>7018936787</code> → <code>701 893-67-87</code></span>
-          </div>
-
-          <div class="cmp-row">
-            <span class="k">Мобильные действия</span>
-            <span class="was" data-k="Было">Панель не липкая, CTA высотой 20 px</span>
-            <span class="now" data-k="Стало">Липкая панель, кнопки не ниже 44 px</span>
-          </div>
-
-          <div class="cmp-row">
-            <span class="k">Мёртвые ассеты шаблона</span>
-            <span class="was" data-k="Было">5 файлов в сборке</span>
-            <span class="now" data-k="Стало">Удалены, репозиторий очищен</span>
-          </div>
-
-          <div class="cmp-row">
-            <span class="k">Оценка по внутреннему бенчмарку</span>
-            <span class="was" data-k="Было">7,7 из 10</span>
-            <span class="now" data-k="Стало">8,3 из 10</span>
-          </div>
-        </div>
-
-        <p class="note">
-          Оценка — из собственной методики сравнения: 12 критериев (дизайн, UX, мобильный,
-          конверсия, доверие, фотографии, контент, продукт, CTA, производительность, SEO,
-          доступность) на выборке из 37 сайтов оконной тематики.
-        </p>
-      </div>
-    </section>
-    <section id="numbers">
-      <div class="wrap">
-        <div class="section-head">
-          <p class="eyebrow"><span class="idx">07</span>Цифры</p>
-          <h2>Замеренные результаты, а не обещания</h2>
+          <p class="eyebrow"><span class="idx">06</span>Цифры</p>
+          <h2>Что можно посчитать и проверить</h2>
+          <p>
+            Цифры ниже я пересчитал по исходникам и живому сайту 5 октября 2026, а не взял из
+            описания проекта.
+          </p>
         </div>
 
         <div class="metrics">
           <div class="metric">
-            <span class="label">Реальные фото в проекте</span>
-            <span class="value">0 → 26<small>все переведены в WebP</small></span>
+            <span class="label">Публичные страницы</span>
+            <span class="value">16<small>все отдают 200</small></span>
           </div>
           <div class="metric">
-            <span class="label">Вес изображений галереи</span>
-            <span class="value"
-              >4,18 МБ<small>миниатюры 640 px — 0,91 МБ, полные 1200 px — 3,27 МБ</small></span
-            >
+            <span class="label">Разделы админки</span>
+            <span class="value">12<small>/admin закрыт редиректом 307, вход отвечает 200</small></span>
           </div>
           <div class="metric">
-            <span class="label">Вес первого экрана</span>
-            <span class="value">5,2 МБ → 158 КБ</span>
+            <span class="label">API-маршруты</span>
+            <span class="value">15<small>заявки, замеры, выгрузки, уведомления, cron</small></span>
           </div>
           <div class="metric">
-            <span class="label">JS-бандл (осознанный рост ради галереи)</span>
-            <span class="value">282 → 348 КБ<small>88 → 103 КБ в gzip</small></span>
+            <span class="label">Модули бизнес-логики</span>
+            <span class="value">9<small>в lib/domain, независимо от транспорта</small></span>
           </div>
           <div class="metric">
-            <span class="label">CSS-бандл</span>
-            <span class="value">31 КБ<small>6,7 КБ в gzip</small></span>
+            <span class="label">Компоненты интерфейса</span>
+            <span class="value">19<small>в components</small></span>
           </div>
           <div class="metric">
-            <span class="label">Первая загрузка с галереей</span>
-            <span class="value">17 запросов<small>все 200, суммарно 782 КБ</small></span>
+            <span class="label">Тесты</span>
+            <span class="value">71<small>в пяти файлах, 14 блоков describe — пересчитано по коду</small></span>
           </div>
           <div class="metric">
-            <span class="label">Проверки логики телефона</span>
-            <span class="value">22 / 22 PASS</span>
+            <span class="label">Документация</span>
+            <span class="value">3 файла<small>мастер-промпт 77 КБ, инструкция владельцу, список ограничений</small></span>
           </div>
           <div class="metric">
-            <span class="label">Ошибки в консоли</span>
-            <span class="value">0<small>на 390 и 1440 px</small></span>
+            <span class="label">Коммиты</span>
+            <span class="value">6<small>за два дня: 3–4 октября 2026</small></span>
           </div>
           <div class="metric">
-            <span class="label">Горизонтальное переполнение</span>
-            <span class="value">Нет<small>8 ширин: 375–1920 px</small></span>
+            <span class="label">Цен на сайте</span>
+            <span class="value">0<small>проверено на 16 страницах: ни одного числа расчёта</small></span>
           </div>
           <div class="metric">
-            <span class="label">Сборка и линтер</span>
-            <span class="value">≈0,3 с<small>0 ошибок</small></span>
+            <span class="label">Ошибки консоли на главной</span>
+            <span class="value">0</span>
+          </div>
+          <div class="metric">
+            <span class="label">sitemap.xml и robots.txt</span>
+            <span class="value">200<small>отдаются, индексация настроена</small></span>
+          </div>
+          <div class="metric">
+            <span class="label">Внутренние ссылки в шапке и подвале</span>
+            <span class="value">22</span>
           </div>
         </div>
       </div>
     </section>
 
-    <section id="process" class="tint">
+    <section id="process">
       <div class="wrap">
         <div class="section-head">
-          <p class="eyebrow"><span class="idx">08</span>Как это делалось</p>
-          <h2>Три дня работы по этапам</h2>
+          <p class="eyebrow"><span class="idx">07</span>Как это делалось</p>
+          <h2>Два дня работы, шесть коммитов</h2>
         </div>
 
         <div class="tl">
           <div class="tl-item">
             <p class="when">3 октября</p>
             <div>
-              <h3>Разбор прототипа и техническая база</h3>
+              <h3>Первая сборка и четыре переработки за сутки</h3>
               <p>
-                Аудит мобильной версии и скорости. Первый экран перенесён с внешнего CDN на
-                локальный WebP: 158 КБ вместо 5,2 МБ. Добавлены
-                <code>focus-visible</code>, понятные disabled-состояния и
-                <code>aria-live</code> для калькулятора, SVG-логотип и отключение анимаций при
-                <code>prefers-reduced-motion</code>. Собрана SEO-разметка
-                <code>LocalBusiness</code>, проверен серверный код.
+                Первичная сборка по мастер-промпту, затем редизайн на shadcn-подходе и автоматизация
+                воронки заявок, правки формы и документация автоматизации, а следом аудит с полной
+                переработкой визуальной системы, структуры и SEO. Пять коммитов за один день.
               </p>
             </div>
           </div>
@@ -1411,14 +1238,12 @@
           <div class="tl-item">
             <p class="when">4 октября</p>
             <div>
-              <h3>Реальные материалы: фото, отзывы, кейсы</h3>
+              <h3>Пересборка с нуля — это и есть живая версия</h3>
               <p>
-                Сравнение с 37 сайтами ниши и перестройка по итогам. Из карточки 2ГИС извлечены
-                26 фотографий и 43 отзыва, собрана галерея с лайтбоксом, раздел кейсов и блок
-                отзывов. Исправлена маска телефона. Подтверждены и добавлены график работы, второй
-                телефон, перегородки, входные двери и тип «производство». Появились финальный
-                CTA-блок, подвал, <code>sitemap.xml</code>, <code>robots.txt</code>, страница 404 и
-                обложка для соцсетей из реального кадра.
+                Содержимое репозитория заменено новой реализацией: 16 страниц, mobile-first вёрстка,
+                дизайн-система «Свет и геометрия», реестр утверждений, полный поток обработки заявок,
+                админка, документация владельцу и отдельный файл с ограничениями. Именно этот коммит
+                сейчас в продакшне.
               </p>
             </div>
           </div>
@@ -1426,12 +1251,11 @@
           <div class="tl-item">
             <p class="when">5 октября</p>
             <div>
-              <h3>Проверки и готовность к показу</h3>
+              <h3>Проверка живого сайта и подготовка кейса</h3>
               <p>
-                Переработка шапки, исправление контраста по WCAG, иерархии заголовков, focus-trap и
-                security-заголовков. Включён демо-режим: форма проходит все шаги, но не делает
-                сетевых запросов и ничего не пишет в браузер. Удалён мёртвый профиль Instagram.
-                Замеры на шести ширинах: ноль ошибок консоли, ноль переполнений.
+                Прошёл по всем публичным страницам и API-маршрутам: статусы, наличие цен, консоль,
+                ширина на 390 и 1440, sitemap и robots. Пересчитал цифры по исходникам. Нашёл один
+                дефект вёрстки — он в списке ограничений ниже, а не спрятан.
               </p>
             </div>
           </div>
@@ -1439,55 +1263,58 @@
       </div>
     </section>
 
-    <section>
+    <section class="tint">
       <div class="wrap">
         <div class="section-head">
-          <p class="eyebrow"><span class="idx">09</span>Результат для компании</p>
-          <h2>Что меняется для заказчика</h2>
+          <p class="eyebrow"><span class="idx">08</span>Результат для компании</p>
+          <h2>Что меняется для владельца</h2>
           <p>
-            Это не метрики трафика — такие цифры появятся только после запуска. Это то, что уже
-            изменилось в самом сайте.
+            Это не метрики трафика — такие цифры появятся, когда сайт начнёт работать на потоке. Это
+            то, что уже встроено в систему.
           </p>
         </div>
 
         <div class="grid-3">
           <article class="card">
-            <h3>Результат видно до звонка</h3>
-            <p>26 работ и шесть отзывов вместо демонстрационной картинки и обещаний.</p>
-          </article>
-          <article class="card">
-            <h3>Доверие проверяется в один клик</h3>
+            <h3>Заявка доходит</h3>
             <p>
-              Рейтинг и отзывы указаны вместе со ссылкой на карточку компании в 2ГИС — клиент может
-              сверить цифры сам.
+              Даже при сбое Telegram она уже лежит в хранилище, а уведомление повторяется по cron.
+              Молчаливого «мы ничего не получили» не бывает.
             </p>
           </article>
           <article class="card">
-            <h3>Заявка не теряется</h3>
+            <h3>Ничего не выдумано</h3>
             <p>
-              При сбое клиент видит честный статус, данные формы сохраняются, а рядом — WhatsApp и
-              телефон.
+              Снят риск недостоверной рекламы: неподтверждённый факт физически не может попасть на
+              страницу — его заменит нейтральная формулировка.
             </p>
           </article>
           <article class="card">
-            <h3>Ничего лишнего не обещано</h3>
+            <h3>Видно, что работает</h3>
             <p>
-              На сайте нет выдуманных цен, гарантий, сертификатов и наград — только подтверждённые
-              факты.
+              Источник и UTM хранятся 30 дней, для 2ГИС, Instagram, WhatsApp и визиток генерируются
+              QR-коды со метками — реклама перестаёт быть лотереей.
             </p>
           </article>
           <article class="card">
-            <h3>Запуск — в один флаг</h3>
+            <h3>Один инструмент вместо переписки</h3>
             <p>
-              <code>DEMO_MODE = false</code> плюс канал доставки заявок, и сайт переходит в рабочий
-              режим без правок вёрстки.
+              Карточка заявки, статусы, замеры, напоминания накануне и утренний дайджест в 09:00 по
+              времени Алматы.
             </p>
           </article>
           <article class="card">
-            <h3>Сайт готов к развитию</h3>
+            <h3>Данные клиентов под контролем</h3>
             <p>
-              Новые фото кладутся в папку без правок кода, структура кейсов типизирована, прайс
-              включается одной константой.
+              Телефон маскируется в логах (видны только первые и последние цифры), файлы лежат вне
+              публичного каталога и отдаются через защищённый маршрут.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Сайт можно развивать</h3>
+            <p>
+              Ядро вызывается из HTTP-маршрута, бота и cron одинаково: WhatsApp-бот, CRM-коннектор или
+              новая страница добавляются без переписывания.
             </p>
           </article>
         </div>
@@ -1497,56 +1324,77 @@
     <section id="limits">
       <div class="wrap">
         <div class="section-head">
-          <p class="eyebrow"><span class="idx">10</span>Что осталось</p>
-          <h2>Честные ограничения проекта</h2>
+          <p class="eyebrow"><span class="idx">09</span>Что осталось</p>
+          <h2>Честные ограничения — включая те, что важнее кода</h2>
           <p>
-            В портфолио принято показывать только сильную часть. Здесь — весь список того, что не
-            сделано, с причиной: это данные заказчика или инфраструктура, а не код.
+            У проекта есть собственный файл <code>docs/RISKS.md</code> именно для этого: чтобы
+            ограничения не выяснились в день запуска. Ниже — он плюс то, что я нашёл при проверке.
           </p>
         </div>
 
-        <div class="grid-2">
-          <article class="card">
-            <h3>Зависит от материалов заказчика</h3>
+        <div class="grid-3">
+          <article class="card signal">
+            <h3>Поэтому сайт пока витрина, а не рабочий приём заявок</h3>
             <ul>
               <li>
-                Цены: прайс не утверждён — в коде готов флаг <code>PRICES_APPROVED</code>, который
-                включает суммы в калькуляторе.
+                На проекте заданы только <code>SITE_URL</code> и <code>CRON_SECRET</code>. Нет
+                <code>DATABASE_URL</code> — значит работает файловый драйвер во временном каталоге, и
+                заявки не переживут перезапуск инстанса.
               </li>
               <li>
-                Кейсы: структура «объект → задача → решение → результат» типизирована, но объектных
-                данных (площадь, сроки, адрес) нет — выдумывать их нельзя.
+                Нет <code>SESSION_SECRET</code> — вход в админку в продакшне падает с ошибкой.
               </li>
               <li>
-                Фотографии: нужны оригиналы без водяного знака 2ГИС и профессиональная съёмка вместо
-                телефонных кадров.
+                Нет <code>TELEGRAM_BOT_TOKEN</code> и <code>TELEGRAM_LEADS_CHAT_ID</code> — заявка
+                сохранится, но менеджер о ней не узнает.
               </li>
               <li>
-                7 из 26 фотографий взяты из отзывов клиентов — вопрос прав вынесен отдельным
-                документом.
+                <strong>Что нужно:</strong> арендовать PostgreSQL (Neon, Supabase, Railway или свой
+                сервер), задать переменные и выполнить <code>npm run db:migrate</code>. Схема написана
+                на обычном SQL и переносится куда угодно.
               </li>
-              <li>Гарантия, сертификаты и год основания не подтверждены, поэтому не заявлены.</li>
             </ul>
           </article>
 
           <article class="card">
-            <h3>Зависит от инфраструктуры и процесса</h3>
+            <h3>Что ещё не сделано</h3>
             <ul>
               <li>
-                Сайт не опубликован: он собран и проверен, но работает в демо-режиме до подключения
-                канала доставки заявок.
+                Лимит частоты считается в памяти процесса: при нескольких репликах нужен Redis. Лимит
+                по телефону дополнительно проверяется по базе и работает независимо.
               </li>
               <li>
-                Переменная <code>CRM_WEBHOOK_URL</code> пуста, а без постоянного диска заявки не
-                переживут передеплой — порядок настройки описан в документации проекта.
+                Загрузка файлов идёт на локальный диск — для продакшна нужен S3-совместимый storage
+                или Vercel Blob.
               </li>
               <li>
-                Числовые оценки Lighthouse не сняты: на рабочей машине нет Chrome, поэтому
-                производительность проверена сетевыми и визуальными замерами, а не баллами.
+                <code>/politika</code> — рабочий шаблон, а не юридический документ: нужна проверка
+                юристом и решение о хранении данных в Казахстане.
               </li>
               <li>
-                Автотестов в проекте нет — логика телефона проверена разово, регрессию пока защищать
-                нечем.
+                Не реализовано: казахская версия, AI-ассистент, публичная страница статуса заказа,
+                WhatsApp Business API, коннекторы CRM (есть универсальный webhook), восстановление
+                пароля, e2e-тесты в браузере.
+              </li>
+              <li>Запись на замер не подтверждается автоматически — нет SMS-подтверждения.</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Найдено при проверке живого сайта</h3>
+            <ul>
+              <li>
+                На странице записи на замер при ширине 1440 появляется горизонтальная прокрутка:
+                ширина документа 1572 px против 1440 px окна (+132 px). Остальные проверенные страницы
+                по ширине чистые.
+              </li>
+              <li>
+                Галерея работ пуста: на проверенных страницах нет ни одной фотографии. Так задумано —
+                чужие снимки не используются, — но визуально сайт пока текстовый.
+              </li>
+              <li>
+                Дословных отзывов нет: публикуются только с согласия авторов, пока показывается
+                рейтинг 2ГИС и обобщение тем.
               </li>
             </ul>
           </article>
@@ -1557,65 +1405,34 @@
     <section class="tint">
       <div class="wrap">
         <div class="section-head">
-          <p class="eyebrow"><span class="idx">11</span>Дальше</p>
-          <h2>Что даст максимальный прирост</h2>
-          <p>
-            По итогам аудита самое выгодное вложение — не код, а материалы: профессиональная съёмка
-            8–12 кадров своих объектов поднимет качество фотографий, а утверждение прайса закроет
-            единственное, где сайт объективно проигрывает конкурентам.
-          </p>
-        </div>
-
-        <ul class="sources">
-          <li>
-            <strong>Съёмка объектов</strong> — галерея и первый экран принимают новые файлы без
-            изменений в коде: достаточно положить снимки в папку проекта.
-          </li>
-          <li>
-            <strong>Подтверждение прайса</strong> — после этого включается флаг и в калькуляторе
-            появляются суммы, а следом ставка уходит в первый экран.
-          </li>
-          <li>
-            <strong>Подключение канала доставки</strong> — вебхук CRM или Telegram-бот и постоянный
-            диск: заявки начнут доходить до менеджера и переживут передеплой.
-          </li>
-          <li>
-            <strong>Данные для кейсов</strong> — площадь, сроки, адреса объектов: раздел кейсов уже
-            свёрстан и ждёт только наполнения.
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <section>
-      <div class="wrap">
-        <div class="section-head">
-          <p class="eyebrow"><span class="idx">12</span>Источники</p>
+          <p class="eyebrow"><span class="idx">10</span>Источники</p>
           <h2>Что можно проверить самостоятельно</h2>
           <p>
-            Кейс собран по отчётам проекта: аудит, бенчмарк, проверки демо-режима и скриншоты лежат
-            в репозитории рядом с кодом. Даты всех проверок — 3–5 октября 2026.
+            Все цифры в кейсе — из исходного кода проекта и живого сайта, проверено 5 октября 2026.
           </p>
         </div>
 
         <ul class="sources">
           <li>
-            <strong>Карточка компании в 2ГИС</strong> — источник фотографий, отзывов и контактов:
+            <strong>Живой сайт:</strong>
+            <a href="https://spf-region-stroy.vercel.app" target="_blank" rel="noreferrer"
+              >spf-region-stroy.vercel.app</a
+            >
+          </li>
+          <li>
+            <strong>Репозиторий проекта:</strong>
+            <code>ignatvanuskin-sys/SPF-Region-Stroy</code>
+          </li>
+          <li>
+            <strong>Документы проекта:</strong> <code>docs/MASTER_PROMPT.md</code> (77 КБ),
+            <code>docs/OWNER_GUIDE.md</code> — инструкция владельцу,
+            <code>docs/RISKS.md</code> — ограничения и требования к продакшну
+          </li>
+          <li>
+            <strong>Карточка компании в 2ГИС</strong> — источник рейтинга, отзывов и контактов:
             <a href="https://2gis.kz/astana/firm/70000001042561575" target="_blank" rel="noreferrer"
               >2gis.kz/astana/firm/70000001042561575</a
             >
-          </li>
-          <li>
-            <strong>Галерея работ</strong> в карточке компании:
-            <a
-              href="https://2gis.kz/astana/gallery/firm/70000001042561575"
-              target="_blank"
-              rel="noreferrer"
-              >2gis.kz/astana/gallery/firm/70000001042561575</a
-            >
-          </li>
-          <li>
-            <strong>Репозиторий проекта:</strong> <code>ignatvanuskin-sys/SPF-Region-Stroy-manus</code>
           </li>
         </ul>
       </div>
@@ -1624,11 +1441,12 @@
     <footer id="author" class="dark">
       <div class="wrap">
         <p class="eyebrow">Автор</p>
-        <h2>Кейс собран мной — от аудита и структуры до сборки и проверок</h2>
+        <h2>Кейс собран мной — по исходникам, а не по презентации проекта</h2>
         <p class="lede">
-          Полный цикл: разбор прототипа, работа с данными компании, перестройка структуры, вёрстка,
-          доступность, SEO, серверная часть и подготовка к запуску. Такой же подход — к вашей
-          задаче: сначала факты и структура, потом оформление.
+          Полный цикл: структура и визуальная система, публичные страницы, поток обработки заявок,
+          админка, уведомления, аналитика источников, документация владельцу и честный список
+          ограничений. Цифры в кейсе пересчитаны по коду и живому сайту, ограничения перечислены без
+          купюр — такой же подход будет к вашей задаче.
         </p>
         <div class="contacts">
           <span class="ph">подпись: [ваше имя или ник]</span>
@@ -1638,13 +1456,11 @@
           <span class="ph">портфолио / GitHub: [ссылка]</span>
         </div>
         <p class="note">
-          Контакты выше — единственное, что осталось вписать перед публикацией. Ссылка на живую
-          версию сайта появится здесь, как только сайт будет задеплоен: сейчас он собран, проверен и
-          работает в демо-режиме.
+          Контакты выше — единственное, что осталось вписать перед публикацией.
         </p>
         <p class="note">
           Контакты компании из карточки 2ГИС: +7 701 893 67 87, Астана, проспект Республики, 56/2а,
-          район Сарыарка. Пн–Сб 09:00–19:00.
+          район Сарыарка.
         </p>
       </div>
     </footer>
