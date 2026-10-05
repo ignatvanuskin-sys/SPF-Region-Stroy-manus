@@ -121,7 +121,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
         <div className="mx-auto max-w-[1240px]">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Подбор по задаче</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Подбор по задаче</p>
               <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-5xl">
                 Не каталог ради каталога — решение под ваш объект.
               </h2>
@@ -145,12 +145,12 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                   <div className="flex size-11 items-center justify-center rounded-2xl bg-[#e5eee8] text-[#173d35]">
                     <Icon size={21} />
                   </div>
-                  <span className="text-[10px] uppercase tracking-[0.12em] text-[#846536]">
+                  <span className="text-xs uppercase tracking-[0.12em] text-[#7a5c2c]">
                     {tag}
                   </span>
                 </div>
                 <h3 className="mt-8 text-lg font-semibold text-[#173d35]">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[#66716a]">{text}</p>
+                <p className="mt-2 text-sm leading-6 text-[#5c665f]">{text}</p>
                 <button
                   type="button"
                   onClick={() => onOrder(preset)}
@@ -176,11 +176,11 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
       >
         <div className="mx-auto grid max-w-[1240px] gap-10 lg:grid-cols-2 lg:gap-16">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Про цену честно</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Про цену честно</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-4xl">
               Мы не пишем «окно от 30 000 ₸». И вот почему.
             </h2>
-            <p className="mt-4 max-w-xl text-base leading-7 text-[#66716a]">
+            <p className="mt-4 max-w-xl text-base leading-7 text-[#5c665f]">
               Одинаковые на вид окна отличаются в цене в разы — и почти всегда разница не в самом
               окне, а в комплектации и монтаже. Поэтому вместо усреднённой цифры мы считаем по вашим
               параметрам и объясняем, из чего складывается сумма.
@@ -218,27 +218,27 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Что выбрать</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Что выбрать</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-4xl">
               Металлопластик или алюминий?
             </h2>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-black/8 bg-white p-5">
                 <p className="text-lg font-semibold text-[#173d35]">Металлопластик</p>
-                <p className="mt-2 text-sm leading-6 text-[#66716a]">
+                <p className="mt-2 text-sm leading-6 text-[#5c665f]">
                   Тёплый профиль для квартир и жилых домов: держит тепло и уличный шум, подходит для
                   стандартных и нестандартных проёмов.
                 </p>
               </div>
               <div className="rounded-2xl border border-black/8 bg-white p-5">
                 <p className="text-lg font-semibold text-[#173d35]">Алюминий</p>
-                <p className="mt-2 text-sm leading-6 text-[#66716a]">
+                <p className="mt-2 text-sm leading-6 text-[#5c665f]">
                   Тонкие прочные рамы и большие площади остекления: фасадные витражи, входные группы,
                   панорамные конструкции для коммерческих объектов.
                 </p>
               </div>
             </div>
-            <p className="mt-4 text-sm leading-6 text-[#66716a]">
+            <p className="mt-4 text-sm leading-6 text-[#5c665f]">
               Не уверены, что подойдёт именно вам? Опишите объект — подскажем вариант и объясним
               разницу на вашем примере, без навязывания более дорогого решения.
             </p>
@@ -252,11 +252,11 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
       >
         <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Как проходит запрос</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Как проходит запрос</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-5xl">
               Короткий путь от идеи до точного разговора.
             </h2>
-            <p className="mt-5 max-w-md text-base leading-7 text-[#66716a]">
+            <p className="mt-5 max-w-md text-base leading-7 text-[#5c665f]">
               Не нужно заранее знать профиль или размеры. Достаточно выбрать направление, приложить
               фото и оставить контакты.
             </p>
@@ -279,7 +279,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
           className="border-y border-black/8 bg-[#e9e5dc] px-5 py-16 sm:px-8 lg:px-12 lg:py-24"
         >
           <div className="mx-auto max-w-[1240px]">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Наши работы</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Наши работы</p>
             <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-5xl">
               Объекты, которые мы уже сделали.
             </h2>
@@ -298,10 +298,10 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                   />
                   <div className="p-5">
                     <h3 className="text-lg font-semibold text-[#173d35]">{item.title}</h3>
-                    <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#846536]">
+                    <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#7a5c2c]">
                       {item.object} · {item.city} · {item.date}
                     </p>
-                    <dl className="mt-4 space-y-2 text-sm leading-6 text-[#66716a]">
+                    <dl className="mt-4 space-y-2 text-sm leading-6 text-[#5c665f]">
                       <div>
                         <dt className="font-semibold text-[#173d35]">Задача</dt>
                         <dd>{item.task}</dd>
@@ -329,11 +329,11 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
       >
         <div className="mx-auto grid max-w-[1240px] gap-8 lg:grid-cols-[1fr_auto]">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Доверие до обращения</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Доверие до обращения</p>
             <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-4xl">
               Проверьте компанию так, как удобно вам.
             </h2>
-            <p className="mt-4 max-w-xl text-base leading-7 text-[#66716a]">
+            <p className="mt-4 max-w-xl text-base leading-7 text-[#5c665f]">
               Рейтинг, отзывы, фотографии и контакты СПФ Регион Строй открыты в 2GIS — по данным
               карточки на {CONTACT.mapUpdatedAt}.
             </p>
@@ -383,11 +383,11 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
       >
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Контакты</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Контакты</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-5xl">
               Можно начать с удобного канала.
             </h2>
-            <p className="mt-5 max-w-md text-base leading-7 text-[#66716a]">
+            <p className="mt-5 max-w-md text-base leading-7 text-[#5c665f]">
               Адрес и телефон подтверждены открытой карточкой 2GIS.
             </p>
             <div data-stagger className="mt-8 grid gap-3">
@@ -397,7 +397,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
               >
                 <PhoneIcon />
                 <span>
-                  <span className="block text-xs text-[#846536]">Телефон</span>
+                  <span className="block text-xs text-[#7a5c2c]">Телефон</span>
                   <span className="font-semibold text-[#173d35]">{CONTACT.phone}</span>
                 </span>
               </a>
@@ -407,16 +407,16 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
               >
                 <PhoneIcon />
                 <span>
-                  <span className="block text-xs text-[#846536]">Дополнительный номер</span>
+                  <span className="block text-xs text-[#7a5c2c]">Дополнительный номер</span>
                   <span className="font-semibold text-[#173d35]">{CONTACT.phone2}</span>
                 </span>
               </a>
               <div className="flex min-h-24 items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4">
                 <Clock size={19} className="text-[#b18b52]" />
                 <span>
-                  <span className="block text-xs text-[#846536]">График работы</span>
+                  <span className="block text-xs text-[#7a5c2c]">График работы</span>
                   <span className="block font-semibold text-[#173d35]">Пн–Сб 09:00–19:00</span>
-                  <span className="block text-xs text-[#66716a]">Воскресенье — выходной</span>
+                  <span className="block text-xs text-[#5c665f]">Воскресенье — выходной</span>
                 </span>
               </div>
               <a
@@ -425,7 +425,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
               >
                 <Mail size={19} className="text-[#b18b52]" />
                 <span>
-                  <span className="block text-xs text-[#846536]">Email</span>
+                  <span className="block text-xs text-[#7a5c2c]">Email</span>
                   <span className="font-semibold text-[#173d35]">{CONTACT.email}</span>
                 </span>
               </a>
@@ -437,7 +437,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
               >
                 <MessageCircle size={19} className="text-[#b18b52]" />
                 <span>
-                  <span className="block text-xs text-[#846536]">WhatsApp</span>
+                  <span className="block text-xs text-[#7a5c2c]">WhatsApp</span>
                   <span className="font-semibold text-[#173d35]">{CONTACT.phone}</span>
                 </span>
               </a>
@@ -449,7 +449,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
               >
                 <Camera size={19} className="text-[#b18b52]" />
                 <span>
-                  <span className="block text-xs text-[#846536]">Instagram</span>
+                  <span className="block text-xs text-[#7a5c2c]">Instagram</span>
                   <span className="font-semibold text-[#173d35]">@spf01002</span>
                 </span>
               </a>
@@ -487,7 +487,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
 
       <section id="faq" className="mx-auto max-w-[900px] px-5 py-16 sm:px-8 lg:py-24">
         <div className="text-center">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">FAQ</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">FAQ</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-5xl">
             Ответы до разговора с менеджером.
           </h2>
@@ -502,7 +502,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                   className="shrink-0 transition-transform group-open:rotate-180"
                 />
               </summary>
-              <p className="max-w-2xl pt-3 text-sm leading-6 text-[#66716a]">{item.a}</p>
+              <p className="max-w-2xl pt-3 text-sm leading-6 text-[#5c665f]">{item.a}</p>
             </details>
           ))}
         </div>
@@ -510,7 +510,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
 
       <section id="privacy" className="mx-auto max-w-[900px] px-5 pb-16 sm:px-8 lg:pb-24">
         <h2 className="text-lg font-semibold text-[#173d35]">Обработка персональных данных</h2>
-        <p className="mt-3 text-sm leading-6 text-[#66716a]">
+        <p className="mt-3 text-sm leading-6 text-[#5c665f]">
           Имя, телефон, адрес объекта, комментарий и фотографии, которые вы оставляете в форме,
           используются только для подготовки расчёта и согласования замера. Данные передаются в
           CRM-систему, которая обрабатывает заявки компании, и не передаются третьим лицам для

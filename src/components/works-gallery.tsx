@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Images, X } from 'lucide-react'
+﻿import { ChevronLeft, ChevronRight, Images, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { WORK_PHOTOS } from '@/lib/works-data'
 
@@ -34,6 +34,25 @@ export function WorksGallery() {
       if (event.key === 'Escape') setOpenIndex(null)
       if (event.key === 'ArrowRight') setOpenIndex((current) => (current === null ? current : (current + 1) % WORK_PHOTOS.length))
       if (event.key === 'ArrowLeft') setOpenIndex((current) => (current === null ? current : (current - 1 + WORK_PHOTOS.length) % WORK_PHOTOS.length))
+
+      // Ловушка фокуса: Tab не должен уводить за пределы диалога в контент под ним.
+      if (event.key === 'Tab') {
+        const dialog = document.querySelector<HTMLElement>('[role="dialog"]')
+        if (!dialog) return
+        const focusable = Array.from(
+          dialog.querySelectorAll<HTMLElement>('button, [href], [tabindex]:not([tabindex="-1"])'),
+        ).filter((element) => !element.hasAttribute('disabled'))
+        if (!focusable.length) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault()
+          last.focus()
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault()
+          first.focus()
+        }
+      }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
@@ -44,11 +63,11 @@ export function WorksGallery() {
       <div className="mx-auto max-w-[1240px]">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Наши работы</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Наши работы</p>
             <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-4xl">
               Реальные объекты, а не стоковые картинки
             </h2>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-[#66716a]">
+            <p className="mt-4 max-w-2xl text-base leading-7 text-[#5c665f]">
               Фотографии из карточки компании: окна в домах, входные группы, витражи, офисные перегородки.
               Нажмите на снимок, чтобы рассмотреть детали.
             </p>
@@ -97,7 +116,7 @@ export function WorksGallery() {
           </div>
         )}
 
-        <p className="mt-6 text-xs leading-5 text-[#66716a]">
+        <p className="mt-6 text-xs leading-5 text-[#5c665f]">
           Фотографии опубликованы в открытой карточке компании в 2ГИС. Часть снимков прислана клиентами
           в отзывах — поэтому кадры без обработки и сняты на телефон.
         </p>

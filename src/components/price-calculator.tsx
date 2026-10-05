@@ -9,6 +9,8 @@ import {
   PROFILE_OPTIONS,
 } from '@/lib/site-config'
 
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+
 const money = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 })
 
 /**
@@ -133,7 +135,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                   min="1"
                   max="30"
                   value={units}
-                  onChange={(event) => setUnits(Number(event.target.value) || 1)}
+                  onChange={(event) => setUnits(clamp(Math.round(Number(event.target.value) || 1), 1, 30))}
                   className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
                 />
               </label>
@@ -146,7 +148,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                   max="8"
                   step="0.1"
                   value={width}
-                  onChange={(event) => setWidth(Number(event.target.value) || 0.3)}
+                  onChange={(event) => setWidth(clamp(Math.round((Number(event.target.value) || 0.3) * 10) / 10, 0.3, 8))}
                   className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
                 />
               </label>
@@ -159,7 +161,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                   max="8"
                   step="0.1"
                   value={height}
-                  onChange={(event) => setHeight(Number(event.target.value) || 0.3)}
+                  onChange={(event) => setHeight(clamp(Math.round((Number(event.target.value) || 0.3) * 10) / 10, 0.3, 8))}
                   className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
                 />
               </label>
@@ -202,7 +204,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
             </label>
 
             <div aria-live="polite" className="mt-6 rounded-2xl bg-[#e6eee8] p-5">
-              <p className="text-xs uppercase tracking-[0.15em] text-[#66806f]">
+              <p className="text-xs uppercase tracking-[0.15em] text-[#59635d]">
                 Ориентировочная стоимость · {units} окон · {result.area.toFixed(1)} м²
               </p>
               {PRICES_APPROVED ? (
@@ -210,7 +212,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                   <p className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[#173d35]">
                     от {money.format(tweenMin)} до {money.format(tweenMax)} ₸
                   </p>
-                  <p className="mt-2 text-xs leading-5 text-[#66716a]">
+                  <p className="mt-2 text-xs leading-5 text-[#5c665f]">
                     Расчёт по вашим параметрам: профиль, фурнитура, стеклопакет
                     {installation ? ' и монтаж' : ''}. Точную стоимость менеджер подтвердит после
                     замера — она зависит от размеров проёмов и цвета.
@@ -289,7 +291,7 @@ function SelectField({
       </select>
       <ChevronDown
         size={16}
-        className="pointer-events-none absolute right-3 bottom-3.5 text-[#66716a]"
+        className="pointer-events-none absolute right-3 bottom-3.5 text-[#5c665f]"
       />
     </label>
   )

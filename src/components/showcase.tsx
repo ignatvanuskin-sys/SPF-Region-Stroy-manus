@@ -32,11 +32,11 @@ export function Cases() {
   return (
     <section id="cases" className="border-y border-black/8 bg-[#e9e5dc] px-5 py-16 sm:px-8 lg:px-12 lg:py-20">
       <div className="mx-auto max-w-[1240px]">
-        <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Кейсы</p>
+        <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Кейсы</p>
         <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-4xl">
           Три направления, с которых чаще всего начинают
         </h2>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-[#66716a]">
+        <p className="mt-4 max-w-2xl text-base leading-7 text-[#5c665f]">
           Ниже — реальные кадры с объектов. Если нужен кейс под вашу задачу, покажем примеры и назовём
           параметры по запросу.
         </p>
@@ -63,7 +63,7 @@ export function Cases() {
                 })}
               </div>
               <h3 className="mt-4 text-xl font-semibold text-[#173d35]">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-[#66716a]">{item.summary}</p>
+              <p className="mt-2 text-sm leading-6 text-[#5c665f]">{item.summary}</p>
               <ul className="mt-3 flex flex-wrap gap-2">
                 {item.points.map((point) => (
                   <li key={point} className="rounded-full bg-white px-3 py-1 text-xs text-[#59635d]">
@@ -85,11 +85,11 @@ export function Reviews() {
       <div className="mx-auto max-w-[1240px]">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Отзывы</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Отзывы</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#173d35] sm:text-4xl">
               Что говорят клиенты
             </h2>
-            <p className="mt-4 text-base leading-7 text-[#66716a]">
+            <p className="mt-4 text-base leading-7 text-[#5c665f]">
               {REVIEWS_RATING.toString().replace('.', ',')} из 5 при {REVIEWS_TOTAL} отзывах в 2ГИС.
               Тексты приведены дословно, включая орфографию авторов.
             </p>
@@ -113,14 +113,14 @@ export function Reviews() {
                     <Star key={index} size={14} className="fill-[#b18b52] text-[#b18b52]" />
                   ))}
                 </span>
-                <span className="text-xs text-[#66716a]">{review.date}</span>
+                <span className="text-xs text-[#5c665f]">{review.date}</span>
               </div>
               <blockquote className="mt-3 flex-1 whitespace-pre-line text-sm leading-6 text-[#3f4843]">
                 {review.text}
               </blockquote>
               <figcaption className="mt-4 border-t border-black/8 pt-3 text-sm font-semibold text-[#173d35]">
                 {review.author}
-                <span className="ml-2 text-xs font-normal text-[#66716a]">
+                <span className="ml-2 text-xs font-normal text-[#5c665f]">
                   {review.hasPhoto ? 'отзыв с фото · 2ГИС' : 'отзыв в 2ГИС'}
                 </span>
               </figcaption>

@@ -280,7 +280,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
               <h1 className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-[#173d35]">
                 Заявка принята
               </h1>
-              <p className="mt-3 leading-7 text-[#66716a]">
+              <p className="mt-3 leading-7 text-[#5c665f]">
                 Заявка <span className="font-semibold text-[#173d35]">№ {leadNumber}</span>{' '}
                 зарегистрирована. Менеджер свяжется по номеру {phone}, уточнит детали и согласует
                 время замера.
@@ -296,18 +296,18 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                   ['Важнее всего', priorities.length ? priorities.join(', ') : 'не указано'],
                 ].map(([label, value]) => (
                   <div key={label} className="flex items-start justify-between gap-4 py-3">
-                    <dt className="shrink-0 text-[#66716a]">{label}</dt>
+                    <dt className="shrink-0 text-[#5c665f]">{label}</dt>
                     <dd className="text-right font-medium text-[#173d35]">{value}</dd>
                   </div>
                 ))}
               </dl>
 
               {photo && (
-                <p className="mt-4 text-sm text-[#66716a]">
+                <p className="mt-4 text-sm text-[#5c665f]">
                   Фото «{photo.name}» приложено к заявке.
                 </p>
               )}
-              <p className="mt-4 text-xs leading-5 text-[#66716a]">
+              <p className="mt-4 text-xs leading-5 text-[#5c665f]">
                 Удобнее переписка? Напишите в WhatsApp — сообщение попадёт менеджеру напрямую и
                 заявка обработается быстрее.
               </p>
@@ -336,11 +336,11 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
         >
           <ArrowLeft size={17} /> Вернуться на сайт
         </button>
-        <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Запрос расчёта</p>
+        <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Запрос расчёта</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-[#173d35]">
           Оставьте заявку на замер
         </h1>
-        <p className="mt-3 text-sm leading-6 text-[#66716a]">
+        <p className="mt-3 text-sm leading-6 text-[#5c665f]">
           Фото, адрес и количество проёмов помогут менеджеру быстрее подготовить расчёт. Точную
           стоимость специалист подтвердит после замера.
         </p>
@@ -407,7 +407,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                         Необязательно · JPG, PNG до {PHOTO_LIMIT_MB} МБ
                       </span>
                     </span>
-                    <Upload size={18} className="text-[#846536]" />
+                    <Upload size={18} className="text-[#7a5c2c]" />
                     <input
                       type="file"
                       name="photo"
@@ -417,7 +417,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                     />
                   </label>
                   {photo && (
-                    <p className="mt-2 truncate text-xs text-[#66716a]">Прикреплено: {photo.name}</p>
+                    <p className="mt-2 truncate text-xs text-[#5c665f]">Прикреплено: {photo.name}</p>
                   )}
                   {errors.photo && <p className={errorClass}>{errors.photo}</p>}
 
@@ -460,7 +460,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                     />
                   </label>
 
-                  <div className="mt-4 flex items-start gap-3 rounded-xl bg-[#f4f1eb] p-4 text-sm text-[#66716a]">
+                  <div className="mt-4 flex items-start gap-3 rounded-xl bg-[#f4f1eb] p-4 text-sm text-[#5c665f]">
                     <MapPin size={18} className="mt-0.5 shrink-0 text-[#b18b52]" /> Адрес нужен, чтобы
                     менеджер подготовил выезд и уточнил доступность замера.
                   </div>
@@ -507,7 +507,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       </button>
                     ))}
                   </div>
-                  <p className="mt-3 text-xs text-[#66716a]">
+                  <p className="mt-3 text-xs text-[#5c665f]">
                     Дата и половина дня — пожелание, точное время подтвердит менеджер.
                   </p>
 
@@ -607,7 +607,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                     className="sr-only"
                   />
 
-                  <label className="mt-4 flex min-h-11 cursor-pointer items-start gap-3 py-1 text-xs leading-5 text-[#66716a]">
+                  <label className="mt-4 flex min-h-11 cursor-pointer items-start gap-3 py-1 text-xs leading-5 text-[#5c665f]">
                     <input
                       type="checkbox"
                       name="consent"
@@ -625,7 +625,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                   </label>
                   {errors.consent && <p className={errorClass}>{errors.consent}</p>}
 
-                  <div className="mt-4 flex items-start gap-3 rounded-xl bg-[#f4f1eb] p-4 text-xs leading-5 text-[#66716a]">
+                  <div className="mt-4 flex items-start gap-3 rounded-xl bg-[#f4f1eb] p-4 text-xs leading-5 text-[#5c665f]">
                     <CalendarDays size={17} className="mt-0.5 shrink-0 text-[#b18b52]" /> Менеджер
                     свяжется в удобное для вас время и подтвердит слот замера.
                   </div>
@@ -1041,8 +1041,8 @@ function App() {
           <Card className="border-black/8 bg-[#fffdf9] shadow-none">
             <CardContent className="p-6">
               <Ruler className="mb-5 text-[#b18b52]" size={24} />
-              <h2 className="text-lg font-semibold text-[#173d35]">Окна по размеру</h2>
-              <p className="mt-2 text-sm leading-6 text-[#66716a]">
+              <h3 className="text-lg font-semibold text-[#173d35]">Окна по размеру</h3>
+              <p className="mt-2 text-sm leading-6 text-[#5c665f]">
                 Пластиковые и алюминиевые окна для жилых и коммерческих помещений.
               </p>
             </CardContent>
@@ -1050,8 +1050,8 @@ function App() {
           <Card className="border-black/8 bg-[#fffdf9] shadow-none">
             <CardContent className="p-6">
               <ShieldCheck className="mb-5 text-[#b18b52]" size={24} />
-              <h2 className="text-lg font-semibold text-[#173d35]">Конструкции и двери</h2>
-              <p className="mt-2 text-sm leading-6 text-[#66716a]">
+              <h3 className="text-lg font-semibold text-[#173d35]">Конструкции и двери</h3>
+              <p className="mt-2 text-sm leading-6 text-[#5c665f]">
                 Решения для входных групп, фасадов и офисных пространств.
               </p>
             </CardContent>
@@ -1059,8 +1059,8 @@ function App() {
           <Card className="border-black/8 bg-[#fffdf9] shadow-none">
             <CardContent className="p-6">
               <MessageCircle className="mb-5 text-[#b18b52]" size={24} />
-              <h2 className="text-lg font-semibold text-[#173d35]">Расчёт в WhatsApp</h2>
-              <p className="mt-2 text-sm leading-6 text-[#66716a]">
+              <h3 className="text-lg font-semibold text-[#173d35]">Расчёт в WhatsApp</h3>
+              <p className="mt-2 text-sm leading-6 text-[#5c665f]">
                 Отправьте задачу — специалист уточнит параметры и подготовит расчёт.
               </p>
             </CardContent>
@@ -1073,7 +1073,7 @@ function App() {
       <section id="process" className="border-y border-black/8 bg-[#e9e5dc] px-5 py-12 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-[1240px] flex-col justify-between gap-8 md:flex-row md:items-end">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#846536]">Следующий шаг</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#7a5c2c]">Следующий шаг</p>
             <h2 className="mt-3 max-w-lg text-3xl font-semibold tracking-[-0.04em] text-[#173d35] sm:text-4xl">
               Расскажите, что нужно остеклить — остальное уточним вместе.
             </h2>
@@ -1122,7 +1122,7 @@ function App() {
 
       <footer
         id="contacts"
-        className="mx-auto flex max-w-[1240px] flex-col gap-4 px-5 py-8 text-sm text-[#66716a] sm:px-8 lg:px-12"
+        className="mx-auto flex max-w-[1240px] flex-col gap-4 px-5 py-8 text-sm text-[#5c665f] sm:px-8 lg:px-12"
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -1142,15 +1142,15 @@ function App() {
             <a className="font-medium text-[#173d35]" href={CONTACT.instagramUrl} target="_blank" rel="noreferrer">
               Instagram
             </a>
-            <a className="text-[#66716a] underline underline-offset-2" href={CONTACT.mapUrl} target="_blank" rel="noreferrer">
+            <a className="text-[#5c665f] underline underline-offset-2" href={CONTACT.mapUrl} target="_blank" rel="noreferrer">
               Карта 2ГИС
             </a>
-            <a className="text-[#66716a] underline underline-offset-2" href="#privacy">
+            <a className="text-[#5c665f] underline underline-offset-2" href="#privacy">
               Обработка данных
             </a>
           </div>
         </div>
-        <p className="text-xs text-[#8a938c]">
+        <p className="text-xs text-[#5c665f]">
           © {COPYRIGHT_YEAR} ТОО «СПФ Регион Строй». Рейтинг, отзывы и часть фотографий — по данным
           открытой карточки компании в 2ГИС.
         </p>
