@@ -24,12 +24,12 @@ import { AdditionalSections } from '@/components/additional-sections'
 import { track } from '@/lib/analytics'
 import {
   buildWhatsAppUrl,
+  createDemoResult,
   createLeadDraft,
   formatPhone,
   isPhoneComplete,
   isValidName,
   makeLeadNumber,
-  saveLeadDraft,
   submitLead,
   type SubmitResult,
 } from '@/lib/lead-automation'
@@ -229,27 +229,39 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
     submittingRef.current = true
 
     setStatus('sending')
-    saveLeadDraft(draft)
 
     try {
-      const response = await submitLead(draft, photo, honeypot)
+      /*
+        Демонстрационный режим не трогает сеть вообще: ни одного запроса к /api/leads.
+        Это принципиально — эндпоинта в проде на Vercel нет, и раньше запрос туда отвечал
+        404, а форма всё равно показывала успех. Здесь запрос просто не отправляется.
+      */
+      const response = DEMO_MODE ? createDemoResult(draft) : await submitLead(draft, photo, honeypot)
 
-      if (response.ok || DEMO_MODE) {
-        if (!response.ok) {
-          // Демо-режим: клиенту показываем приём заявки, техническую причину пишем в консоль.
-          console.error('Lead submit failed (demo mode):', response.status, response.error)
-        }
-        track('lead_submitted', {
-          outcome: response.ok ? response.outcome ?? 'unknown' : 'demo',
-        })
-        setResult(
-          response.ok
-            ? response
-            : { ok: true, status: 200, outcome: 'delivered', leadId: draft.id },
-        )
+      /*
+        Успех — не только HTTP 2xx, но и подтверждённое сохранение.
+        Сервер умеет ответить 200 и при этом ничего не сохранить (например, канал доставки
+        не настроен и запись на диск не удалась). Раньше такой ответ считался успехом, и
+        клиент видел «Заявка принята», хотя заявка не попадала никуда. Теперь любое
+        неподтверждённое состояние — это экран ошибки с WhatsApp и телефоном.
+        Демонстрация — отдельное состояние: она подтверждена как прогон формы, но не как
+        доставка, поэтому у неё свой экран.
+      */
+      const confirmed =
+        response.ok &&
+        (response.demo === true || response.outcome === 'delivered' || response.storage?.saved === true)
+
+      if (confirmed) {
+        track('lead_submitted', { outcome: response.outcome ?? 'unknown' })
+        setResult(response)
         setStatus('success')
       } else {
-        console.error('Lead submit failed:', response.status, response.error)
+        // status может быть и 200 — тогда заявка не подтверждена сохранением на сервере.
+        console.error(
+          'Lead submit not confirmed:',
+          response.status,
+          response.error ?? `outcome=${response.outcome ?? 'none'} saved=${response.storage?.saved ?? 'unknown'}`,
+        )
         track('lead_failed', { status: response.status })
         setResult(response)
         setStatus('error')
@@ -260,6 +272,17 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
   }
 
   const leadNumber = makeLeadNumber(draft.createdAt, result?.leadId ?? draft.id)
+
+  /*
+    Экран после отправки знает три разных состояния, и путать их нельзя:
+      demo      — демонстрационный прогон: сеть не тронута, заявка никуда не ушла;
+      delivered — заявка подтверждённо передана в канал доставки;
+      stored    — заявка легла на сервер, но уведомление менеджеру не ушло.
+    Обещать звонок можно только во втором случае, иначе экран врёт так же, как раньше врал
+    ложный «приём заявки».
+  */
+  const demo = result?.demo === true
+  const delivered = !demo && result?.outcome === 'delivered'
 
   if (status === 'success') {
     return (
@@ -274,17 +297,40 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
           </button>
           <Card className="border-black/8 bg-[#fffdf9] shadow-none">
             <CardContent className="p-6 sm:p-8">
-              <div className="flex size-14 items-center justify-center rounded-full bg-[#dce9df] text-[#173d35]">
-                <CheckCircle2 size={28} />
-              </div>
+              {/*
+                В демонстрации зелёная галочка не используется: она читается как «заявка
+                ушла». Для демо — нейтральный золотой значок, чтобы статус был виден
+                с первого взгляда, а не только по тексту.
+              */}
+              {demo ? (
+                <div className="flex size-14 items-center justify-center rounded-full bg-[#f0eadf] text-[#7a5c2c]">
+                  <Info size={28} />
+                </div>
+              ) : (
+                <div className="flex size-14 items-center justify-center rounded-full bg-[#dce9df] text-[#173d35]">
+                  <CheckCircle2 size={28} />
+                </div>
+              )}
               <h1 className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-[#173d35]">
-                Заявка принята
+                {demo ? 'Заявка заполнена в демо-режиме' : delivered ? 'Заявка передана менеджеру' : 'Заявка сохранена'}
               </h1>
-              <p className="mt-3 leading-7 text-[#5c665f]">
-                Заявка <span className="font-semibold text-[#173d35]">№ {leadNumber}</span>{' '}
-                зарегистрирована. Менеджер свяжется по номеру {phone}, уточнит детали и согласует
-                время замера.
-              </p>
+              {demo ? (
+                <p className="mt-3 leading-7 text-[#5c665f]">
+                  Форма пройдена целиком, заявке присвоен тестовый номер{' '}
+                  <span className="font-semibold text-[#173d35]">№ {leadNumber}</span>.
+                  <br />
+                  Это демонстрация сайта: данные никуда не отправлены и не сохранены — ни на
+                  сервере, ни в браузере. Чтобы оставить настоящую заявку, напишите в WhatsApp
+                  или позвоните.
+                </p>
+              ) : (
+                <p className="mt-3 leading-7 text-[#5c665f]">
+                  Заявка <span className="font-semibold text-[#173d35]">№ {leadNumber}</span>{' '}
+                  {delivered
+                    ? `передана. Менеджер свяжется по номеру ${phone}, уточнит детали и согласует время замера.`
+                    : `сохранена на нашем сервере. Чтобы её взяли в работу сразу, продублируйте её в WhatsApp — текст сообщения уже подставлен.`}
+                </p>
+              )}
 
               <dl className="mt-6 divide-y divide-black/10 rounded-2xl bg-[#f4f1eb] px-4 text-sm">
                 {[
@@ -304,7 +350,10 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
 
               {photo && (
                 <p className="mt-4 text-sm text-[#5c665f]">
-                  Фото «{photo.name}» приложено к заявке.
+                  {/* В демо файл никуда не уходит, поэтому «приложено к заявке» здесь было бы неправдой. */}
+                  {demo
+                    ? `Фото «${photo.name}» было выбрано в форме — в демонстрации файл никуда не отправляется.`
+                    : `Фото «${photo.name}» приложено к заявке.`}
                 </p>
               )}
               <p className="mt-4 text-xs leading-5 text-[#5c665f]">
@@ -630,18 +679,22 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                     свяжется в удобное для вас время и подтвердит слот замера.
                   </div>
 
-                  {/* Демо-режим: клиент всегда видит приём заявки, блок ошибки не показываем. */}
-                  {!DEMO_MODE && status === 'error' && (
+                  {/*
+                    Блок ошибки показывается всегда, когда сервер не подтвердил приём.
+                    Данные не теряются: они остаются в полях формы, а WhatsApp-ссылка уже
+                    собрана из них — поэтому отправка в чат происходит в один клик.
+                  */}
+                  {status === 'error' && (
                     <div
                       role="alert"
                       className="mt-4 rounded-xl border border-[#b91c1c]/25 bg-[#fef2f2] p-4 text-xs leading-5 text-[#7f1d1d]"
                     >
                       <p className="flex items-start gap-2 font-semibold">
-                        <Info size={16} className="mt-0.5 shrink-0" /> Не удалось отправить заявку
+                        <Info size={16} className="mt-0.5 shrink-0" /> Заявка не отправлена
                       </p>
                       <p className="mt-2">
-                        Заявка сохранена на этом устройстве. Отправьте её в WhatsApp или позвоните —
-                        так менеджер точно получит обращение.
+                        Сервер не подтвердил приём. Данные, которые вы заполнили, остались в форме —
+                        отправьте их в WhatsApp или позвоните: так менеджер точно получит обращение.
                       </p>
                       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                         <a
@@ -884,8 +937,15 @@ function App() {
               className="h-8 w-auto sm:h-9"
             />
           </a>
+          {/*
+            На 1024px в шапке не хватало места: меню включается с lg, а вместе с телефоном
+            и кнопкой WhatsApp контент упирался в край ровно (замерено: wa.right = 961 =
+            правый край контента), поэтому «Как работаем» и подпись кнопки переносились на
+            две строки. До xl разряжаем промежутки меню и укорачиваем подпись WhatsApp,
+            с xl возвращаем исходный вид.
+          */}
           <nav
-            className="hidden items-center gap-8 text-sm text-[#59635d] lg:flex"
+            className="hidden items-center gap-4 text-sm text-[#59635d] lg:flex xl:gap-8"
             aria-label="Основная навигация"
           >
             <a className="transition-colors hover:text-[#173d35]" href="#solutions-detail">
@@ -897,8 +957,13 @@ function App() {
             <a className="transition-colors hover:text-[#173d35]" href="#calculator">
               Калькулятор
             </a>
+            {/*
+              «Этапы» вместо «Как работаем»: на 1024px пункт меню не помещался и
+              переносился на две строки. Длинная подпись осталась в мобильном меню,
+              где места достаточно. Ссылка ведёт туда же.
+            */}
             <a className="transition-colors hover:text-[#173d35]" href="#how-it-works">
-              Как работаем
+              Этапы
             </a>
             <a className="transition-colors hover:text-[#173d35]" href="#faq">
               FAQ
@@ -908,16 +973,27 @@ function App() {
             </a>
           </nav>
           <div className="hidden items-center gap-3 sm:flex">
-            <a className="text-sm font-medium text-[#173d35]" href={CONTACT.phoneHref}>
+            {/*
+              Телефон — второй CTA шапки, а не пункт меню: рамка, иконка трубки и
+              полужирное начертание отделяют его от навигации. tabular-nums держит
+              цифры одной ширины, чтобы номер не «дышал» при смене символов.
+            */}
+            <a
+              className="inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-[#173d35]/25 px-4 text-sm font-semibold tabular-nums text-[#173d35] transition-colors hover:border-[#173d35]/45 hover:bg-white"
+              href={CONTACT.phoneHref}
+            >
+              <Phone size={16} aria-hidden="true" />
               {CONTACT.phone}
             </a>
             <a
-              className="inline-flex h-11 items-center justify-center rounded-full bg-[#173d35] px-4 text-sm font-semibold !text-[#f7f4ee] transition-colors hover:bg-[#24594c]"
+              className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[#173d35] px-4 text-sm font-semibold !text-[#f7f4ee] transition-colors hover:bg-[#24594c]"
               href={whatsappHref}
               target="_blank"
               rel="noreferrer"
             >
-              Написать в WhatsApp
+              {/* Короткая подпись до xl — иначе кнопка не оставляет места меню на 1024px. */}
+              <span className="xl:hidden">WhatsApp</span>
+              <span className="hidden xl:inline">Написать в WhatsApp</span>
             </a>
           </div>
           <button
@@ -1139,9 +1215,17 @@ function App() {
             <a className="font-medium text-[#173d35]" href={whatsappHref} target="_blank" rel="noreferrer">
               WhatsApp
             </a>
-            <a className="font-medium text-[#173d35]" href={CONTACT.instagramUrl} target="_blank" rel="noreferrer">
-              Instagram
-            </a>
+            {/* Мёртвый профиль @spf01002 убран: ссылка вернётся, когда хэндл подтвердят. */}
+            {CONTACT.instagramHandle && (
+              <a
+                className="font-medium text-[#173d35]"
+                href={`https://www.instagram.com/${CONTACT.instagramHandle}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Instagram
+              </a>
+            )}
             <a className="text-[#5c665f] underline underline-offset-2" href={CONTACT.mapUrl} target="_blank" rel="noreferrer">
               Карта 2ГИС
             </a>

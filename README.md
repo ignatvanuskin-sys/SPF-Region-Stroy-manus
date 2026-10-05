@@ -1,4 +1,41 @@
-# React + TypeScript + Vite
+# Сайт СПФ «Регион Строй» — окна и конструкции в Астане
+
+React + TypeScript + Vite. Статика собирается в `dist`, заявки принимает Node-сервер
+`server/index.mjs` (он же раздаёт сборку).
+
+## Запуск
+
+```bash
+npm ci
+npm run build
+npm run start        # сервер на PORT (по умолчанию 3000)
+```
+
+## Демо-режим и переход в продакшен
+
+Единственный переключатель — `DEMO_MODE` в `src/lib/site-config.ts`.
+
+**Демо (сейчас `true`).** Форма проходит все шаги, но не обращается к сети вообще:
+запрос к `/api/leads` не отправляется, заявка получает тестовый номер и нигде не
+сохраняется, а после отправки показывается честное подтверждение «демо-режим».
+Ничего не пишется и в `localStorage`. Сайт можно показывать как рабочий прототип.
+
+**Продакшен (`false`).** Форма отправляет заявку в `/api/leads`, и экран успеха
+показывает «передана менеджеру» только когда сервер подтвердил доставку. Перед
+включением нужно:
+
+1. развернуть Node-сервер (`Dockerfile` + `railway.toml`, healthcheck `/api/health`) —
+   Vercel не запускает Node-процессы, поэтому там `/api/leads` отвечает 404;
+2. задать канал доставки: `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` либо
+   `CRM_WEBHOOK_URL` (+ `CRM_API_TOKEN`);
+3. задать постоянный диск: `LEADS_DIR=/data`, иначе заявки исчезнут при передеплое;
+4. при необходимости — аналитику: `VITE_ANALYTICS_ENDPOINT`.
+
+Описание переменных — в `.env.example`.
+
+---
+
+## Шаблон Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 

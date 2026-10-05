@@ -441,18 +441,21 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
                   <span className="font-semibold text-[#173d35]">{CONTACT.phone}</span>
                 </span>
               </a>
-              <a
-                href={CONTACT.instagramUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex min-h-24 items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
-              >
-                <Camera size={19} className="text-[#b18b52]" />
-                <span>
-                  <span className="block text-xs text-[#7a5c2c]">Instagram</span>
-                  <span className="font-semibold text-[#173d35]">@spf01002</span>
-                </span>
-              </a>
+              {/* Пока актуальный профиль не подтверждён, карточка не показывается вовсе. */}
+              {CONTACT.instagramHandle && (
+                <a
+                  href={`https://www.instagram.com/${CONTACT.instagramHandle}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex min-h-24 items-center gap-4 rounded-2xl border border-black/8 bg-[#fffdf9] p-4"
+                >
+                  <Camera size={19} className="text-[#b18b52]" />
+                  <span>
+                    <span className="block text-xs text-[#7a5c2c]">Instagram</span>
+                    <span className="font-semibold text-[#173d35]">@{CONTACT.instagramHandle}</span>
+                  </span>
+                </a>
+              )}
             </div>
           </div>
           <div className="flex min-h-[320px] flex-col justify-between rounded-[2rem] bg-[#173d35] p-6 text-[#f7f4ee] sm:p-8">

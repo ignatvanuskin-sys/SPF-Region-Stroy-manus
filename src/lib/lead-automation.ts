@@ -31,7 +31,6 @@ export function makeLeadNumber(createdAt: string, id: string) {
 }
 
 export const CRM_ENDPOINT = '/api/leads'
-const OUTBOX_KEY = 'spf-lead-outbox'
 const REQUEST_TIMEOUT_MS = 20000
 
 export function createLeadDraft(
@@ -47,15 +46,15 @@ export function createLeadDraft(
   }
 }
 
-/** Локальный outbox на случай, если сеть недоступна: черновик не теряется. */
-export function saveLeadDraft(lead: LeadDraft) {
-  try {
-    const existing = JSON.parse(localStorage.getItem(OUTBOX_KEY) ?? '[]') as LeadDraft[]
-    localStorage.setItem(OUTBOX_KEY, JSON.stringify([lead, ...existing].slice(0, 25)))
-  } catch {
-    // localStorage может быть недоступен (приватный режим) — это не повод ломать форму.
-  }
-}
+/*
+  Локального outbox здесь больше нет сознательно.
+  Раньше заявка дублировалась в localStorage (`spf-lead-outbox`) до отправки на сервер.
+  Менеджер это хранилище не видит, интерфейса для повторной отправки не было — то есть
+  оно не спасало заявку, зато оставляло имя, телефон и адрес клиента лежать в открытом
+  виде в браузере (в том числе на общем или чужом устройстве). Роль «не потерять данные»
+  теперь выполняет сама форма: при ошибке поля сохраняются, а WhatsApp-ссылка собирается
+  из них одним нажатием.
+*/
 
 export function buildWhatsAppMessage(lead: LeadDraft) {
   return [
@@ -83,6 +82,11 @@ export type SubmitResult = {
   status: number
   leadId?: string
   /**
+   * true — результат демонстрационного режима: сеть не задействована вовсе.
+   * UI обязан показать это словом «демонстрация», а не подтверждением доставки.
+   */
+  demo?: boolean
+  /**
    * delivered — заявка передана в канал доставки (CRM/Telegram);
    * stored — сохранена на сервере, но канал доставки не настроен;
    * dropped — отброшена антиспамом.
@@ -91,6 +95,17 @@ export type SubmitResult = {
   outcome?: 'delivered' | 'stored' | 'dropped'
   storage?: { saved: boolean; persistent: boolean }
   error?: string
+}
+
+/**
+ * Результат демонстрационного прогона формы.
+ *
+ * Сеть здесь не задействована вообще: функция не делает запрос и ничего не сохраняет —
+ * ни на сервере, ни в localStorage. Тестовый номер собирается из клиентского id заявки,
+ * чтобы демонстрация выглядела правдоподобно, но оставалась честной.
+ */
+export function createDemoResult(lead: LeadDraft): SubmitResult {
+  return { ok: true, status: 0, demo: true, leadId: lead.id }
 }
 
 /**

@@ -32,12 +32,12 @@ outputs/
 spf-region-manus-new/
 .manus/
 .manus-webdev/
+.vercel
 
 # Служебные скрипты QA-агентов (не часть проекта)
 _qa*.js
 qa_*.js
 measure*.js
-
 probe_*.js
 probe*.js
 qa*.md
@@ -45,3 +45,16 @@ qa*.md
 _*.md
 *_progress.md
 audit-scan.js
+
+# Снимки экрана из проверок вёрстки и демо (лежат локально, в outputs/audit-evidence)
+measured-*.png
+honesty-*.png
+demo-*.png
+fit2-*.png
+header-fit-*.png
+header-crop-*.png
+baseline-live-*.png
+final-*.png
+contacts-after.png
+footer-after.png
+instagram-check.png
