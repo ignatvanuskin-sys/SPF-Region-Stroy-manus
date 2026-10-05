@@ -19,13 +19,14 @@ function useTweenedNumber(value: number, duration = 320) {
   const [display, setDisplay] = useState(value)
   const fromRef = useRef(value)
   const frameRef = useRef<number | null>(null)
+  // Режим уменьшенной анимации читаем на рендере: иначе пришлось бы вызывать
+  // setState синхронно внутри эффекта, что даёт лишние перерисовки.
+  const reduceMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      fromRef.current = value
-      setDisplay(value)
-      return
-    }
+    if (reduceMotion) return
     const from = fromRef.current
     const startedAt = performance.now()
     const step = (now: number) => {
@@ -40,9 +41,9 @@ function useTweenedNumber(value: number, duration = 320) {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
       fromRef.current = value
     }
-  }, [value, duration])
+  }, [value, duration, reduceMotion])
 
-  return display
+  return reduceMotion ? value : display
 }
 export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
   const [units, setUnits] = useState(3)
