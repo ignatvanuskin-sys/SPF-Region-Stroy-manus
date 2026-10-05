@@ -14,6 +14,17 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 const money = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 })
 
 /**
+ * 1 окно, 2 окна, 5 окон. Без склонения в итоговой строке получалось «1 окон».
+ */
+function windowsWord(count: number) {
+  const mod10 = count % 10
+  const mod100 = count % 100
+  if (mod10 === 1 && mod100 !== 11) return 'окно'
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'окна'
+  return 'окон'
+}
+
+/**
  * Плавно доводит число до нового значения: при изменении параметров цена
  * пересчитывается не рывком, а за треть секунды. Уважает prefers-reduced-motion.
  */
@@ -136,7 +147,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                   max="30"
                   value={units}
                   onChange={(event) => setUnits(clamp(Math.round(Number(event.target.value) || 1), 1, 30))}
-                  className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
+                  className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
                 />
               </label>
               <label className="text-sm text-[#59635d]">
@@ -149,7 +160,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                   step="0.1"
                   value={width}
                   onChange={(event) => setWidth(clamp(Math.round((Number(event.target.value) || 0.3) * 10) / 10, 0.3, 8))}
-                  className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
+                  className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
                 />
               </label>
               <label className="text-sm text-[#59635d]">
@@ -162,7 +173,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
                   step="0.1"
                   value={height}
                   onChange={(event) => setHeight(clamp(Math.round((Number(event.target.value) || 0.3) * 10) / 10, 0.3, 8))}
-                  className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
+                  className="mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 text-base font-medium outline-none focus:ring-2 focus:ring-[#173d35]"
                 />
               </label>
             </div>
@@ -205,7 +216,7 @@ export function PriceCalculator({ onOrder }: { onOrder: () => void }) {
 
             <div aria-live="polite" className="mt-6 rounded-2xl bg-[#e6eee8] p-5">
               <p className="text-xs uppercase tracking-[0.15em] text-[#59635d]">
-                Ориентировочная стоимость · {units} окон · {result.area.toFixed(1)} м²
+                Ориентировочная стоимость · {units} {windowsWord(units)} · {result.area.toFixed(1)} м²
               </p>
               {PRICES_APPROVED ? (
                 <>
@@ -281,7 +292,7 @@ function SelectField({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-12 w-full appearance-none rounded-xl border border-black/15 bg-white px-3 pr-9 text-sm font-medium text-[#202522] outline-none focus:ring-2 focus:ring-[#173d35]"
+        className="mt-2 h-12 w-full appearance-none rounded-xl border border-black/15 bg-white px-3 pr-9 text-base font-medium text-[#202522] outline-none focus:ring-2 focus:ring-[#173d35]"
       >
         {options.map((option) => (
           <option key={option.id} value={option.id}>

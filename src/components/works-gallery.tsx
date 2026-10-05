@@ -14,7 +14,7 @@ export function WorksGallery() {
   const visible = expanded ? WORK_PHOTOS : WORK_PHOTOS.slice(0, PREVIEW_COUNT)
   const active = openIndex === null ? null : WORK_PHOTOS[openIndex]
 
-  // Блокировка прокрутки + возврат фокуса
+  // Блокировка прокрутки + фокус на кнопке закрытия
   useEffect(() => {
     if (!isOpen) return
     lastFocusedRef.current = document.activeElement as HTMLElement
@@ -23,8 +23,20 @@ export function WorksGallery() {
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = previousOverflow
-      lastFocusedRef.current?.focus()
     }
+  }, [isOpen])
+
+  /*
+    Возврат фокуса на миниатюру, из которой открыли просмотр. Отдельным эффектом и через
+    requestAnimationFrame: диалог к этому моменту уже удалён из DOM, и браузер сам переводит
+    фокус на body — фокус нужно вернуть после этого, иначе он остаётся на body.
+  */
+  useEffect(() => {
+    if (isOpen) return
+    const target = lastFocusedRef.current
+    if (!target || !document.contains(target)) return
+    const frame = window.requestAnimationFrame(() => target.focus())
+    return () => window.cancelAnimationFrame(frame)
   }, [isOpen])
 
   // Клавиатура: Esc — закрыть, стрелки — листать

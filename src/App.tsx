@@ -51,8 +51,8 @@ const smallPrimary =
   'inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#173d35] px-5 text-sm font-semibold !text-[#f7f4ee] hover:bg-[#24594c]'
 const smallOutline =
   'inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#173d35]/25 px-5 text-sm font-medium text-[#173d35] hover:bg-white/60'
-const fieldClass =
-  'mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-4 text-[#202522] outline-none placeholder:text-[#7d8781] focus:ring-2 focus:ring-[#173d35]'
+  const fieldClass =
+    'mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-4 text-base text-[#202522] outline-none placeholder:text-[#7d8781] focus:ring-2 focus:ring-[#173d35] aria-invalid:border-[#b91c1c]/60 aria-invalid:ring-1 aria-invalid:ring-[#b91c1c]/30'
 const errorClass = 'mt-2 text-xs leading-5 text-[#b91c1c]'
 
 // Год считаем один раз при загрузке модуля: вызов Date внутри рендера — нечистая функция.
@@ -426,7 +426,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       </button>
                     ))}
                   </div>
-                  {errors.service && <p className={errorClass}>{errors.service}</p>}
+                  {errors.service && <p role="alert" className={errorClass}>{errors.service}</p>}
 
                   <p className="mt-6 text-sm font-semibold text-[#173d35]">Тип объекта</p>
                   <div className="mt-3 grid grid-cols-3 gap-3">
@@ -446,7 +446,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       </button>
                     ))}
                   </div>
-                  {errors.objectType && <p className={errorClass}>{errors.objectType}</p>}
+                  {errors.objectType && <p role="alert" className={errorClass}>{errors.objectType}</p>}
 
                   <label className="mt-6 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-[#b18b52]/60 bg-[#fffaf1] p-4">
                     <ImagePlus size={21} className="text-[#b18b52]" />
@@ -457,10 +457,11 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       </span>
                     </span>
                     <Upload size={18} className="text-[#7a5c2c]" />
-                    <input
-                      type="file"
-                      name="photo"
-                      accept="image/png,image/jpeg"
+                  <input
+                    type="file"
+                    name="photo"
+                    aria-describedby="photo-error"
+                    accept="image/png,image/jpeg"
                       className="sr-only"
                       onChange={(event) => onPhotoChange(event.target.files?.[0])}
                     />
@@ -468,7 +469,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                   {photo && (
                     <p className="mt-2 truncate text-xs text-[#5c665f]">Прикреплено: {photo.name}</p>
                   )}
-                  {errors.photo && <p className={errorClass}>{errors.photo}</p>}
+                  {errors.photo && <p id="photo-error" role="alert" className={errorClass}>{errors.photo}</p>}
 
                   <button type="submit" className={primaryLink + ' mt-6 w-full'}>
                     Продолжить <ChevronRight size={18} />
@@ -486,13 +487,13 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       autoComplete="street-address"
                       maxLength={160}
                       value={address}
-                      aria-invalid={Boolean(errors.address)}
+                      aria-invalid={Boolean(errors.address)} aria-describedby={errors.address ? 'address-error' : undefined}
                       onChange={(event) => setAddress(event.target.value)}
                       placeholder="Улица, дом, квартира / офис"
                       className={fieldClass}
                     />
                   </label>
-                  {errors.address && <p className={errorClass}>{errors.address}</p>}
+                  {errors.address && <p id="address-error" className={errorClass}>{errors.address}</p>}
 
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Сколько проёмов? <span className="text-[#9ca39d]">необязательно</span>
@@ -602,13 +603,13 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       autoComplete="name"
                       maxLength={80}
                       value={name}
-                      aria-invalid={Boolean(errors.name)}
+                      aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'name-error' : undefined}
                       onChange={(event) => setName(event.target.value)}
                       placeholder="Как к вам обращаться"
                       className={fieldClass}
                     />
                   </label>
-                  {errors.name && <p className={errorClass}>{errors.name}</p>}
+                  {errors.name && <p id="name-error" className={errorClass}>{errors.name}</p>}
 
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Телефон
@@ -623,14 +624,14 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                         inputMode="tel"
                         autoComplete="tel"
                         value={phone}
-                        aria-invalid={Boolean(errors.phone)}
+                        aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? 'phone-error' : undefined}
                         onChange={(event) => setPhone(formatPhone(event.target.value))}
                         placeholder="701 000-00-00"
                         className="h-full w-full bg-transparent outline-none placeholder:text-[#7d8781]"
                       />
                     </div>
                   </label>
-                  {errors.phone && <p className={errorClass}>{errors.phone}</p>}
+                  {errors.phone && <p id="phone-error" className={errorClass}>{errors.phone}</p>}
 
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Комментарий <span className="text-[#9ca39d]">необязательно</span>
@@ -641,7 +642,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       onChange={(event) => setComment(event.target.value)}
                       placeholder="Например: нужно остеклить балкон"
                       rows={3}
-                      className="mt-2 w-full resize-none rounded-xl border border-black/10 bg-white px-4 py-3 text-[#202522] outline-none placeholder:text-[#9ca39d] focus:ring-2 focus:ring-[#173d35]"
+                      className="mt-2 w-full resize-none rounded-xl border border-black/10 bg-white px-4 py-3 text-base text-[#202522] outline-none placeholder:text-[#9ca39d] focus:ring-2 focus:ring-[#173d35]"
                     />
                   </label>
 
@@ -661,7 +662,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       type="checkbox"
                       name="consent"
                       checked={consent}
-                      aria-invalid={Boolean(errors.consent)}
+                      aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? 'consent-error' : undefined}
                       onChange={(event) => setConsent(event.target.checked)}
                       className="mt-0.5 size-5 shrink-0 accent-[#173d35]"
                     />
@@ -672,7 +673,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       </a>
                     </span>
                   </label>
-                  {errors.consent && <p className={errorClass}>{errors.consent}</p>}
+                  {errors.consent && <p id="consent-error" className={errorClass}>{errors.consent}</p>}
 
                   <div className="mt-4 flex items-start gap-3 rounded-xl bg-[#f4f1eb] p-4 text-xs leading-5 text-[#5c665f]">
                     <CalendarDays size={17} className="mt-0.5 shrink-0 text-[#b18b52]" /> Менеджер
@@ -738,6 +739,22 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
+
+  /*
+    Клик вне панели закрывает мобильное меню. Раньше оно закрывалось только по Escape или
+    повторному тапу по бургеру и оставалось висеть поверх контента.
+    Панель и бургер лежат внутри <header>, поэтому «вне» — это всё, что не внутри header.
+  */
+  useEffect(() => {
+    if (!menuOpen) return
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null
+      if (target?.closest('header')) return
+      setMenuOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [menuOpen])
   const [screen, setScreen] = useState<'home' | 'order'>('home')
   const [preset, setPreset] = useState<Service>()
   const [scrolled, setScrolled] = useState(false)
@@ -1026,29 +1043,30 @@ function App() {
               : 'max-h-0 border-transparent opacity-0'
           }`}
         >
-          <div className="flex flex-col gap-4 px-5 py-4 text-sm text-[#59635d]">
-              <a href="#solutions-detail" onClick={() => setMenuOpen(false)}>
+          {/* Ссылки не ниже 44px: раньше высота была 20px, и в пункт меню было сложно попасть пальцем. */}
+          <div className="flex flex-col px-3 py-2 text-sm text-[#59635d]">
+              <a className="flex min-h-11 items-center rounded-lg px-2" href="#solutions-detail" onClick={() => setMenuOpen(false)}>
                 Решения
               </a>
-              <a href="#works" onClick={() => setMenuOpen(false)}>
+              <a className="flex min-h-11 items-center rounded-lg px-2" href="#works" onClick={() => setMenuOpen(false)}>
                 Наши работы
               </a>
-              <a href="#calculator" onClick={() => setMenuOpen(false)}>
+              <a className="flex min-h-11 items-center rounded-lg px-2" href="#calculator" onClick={() => setMenuOpen(false)}>
                 Калькулятор
               </a>
-              <a href="#reviews" onClick={() => setMenuOpen(false)}>
+              <a className="flex min-h-11 items-center rounded-lg px-2" href="#reviews" onClick={() => setMenuOpen(false)}>
                 Отзывы
               </a>
-              <a href="#how-it-works" onClick={() => setMenuOpen(false)}>
+              <a className="flex min-h-11 items-center rounded-lg px-2" href="#how-it-works" onClick={() => setMenuOpen(false)}>
                 Как работаем
               </a>
-              <a href="#faq" onClick={() => setMenuOpen(false)}>
+              <a className="flex min-h-11 items-center rounded-lg px-2" href="#faq" onClick={() => setMenuOpen(false)}>
                 FAQ
               </a>
-              <a href="#contacts" onClick={() => setMenuOpen(false)}>
+              <a className="flex min-h-11 items-center rounded-lg px-2" href="#contacts" onClick={() => setMenuOpen(false)}>
                 Контакты
               </a>
-              <a className="font-semibold text-[#173d35]" href={CONTACT.phoneHref}>
+              <a className="flex min-h-11 items-center rounded-lg px-2 font-semibold text-[#173d35]" href={CONTACT.phoneHref}>
                 {CONTACT.phone}
               </a>
           </div>
@@ -1117,7 +1135,9 @@ function App() {
           <Card className="border-black/8 bg-[#fffdf9] shadow-none">
             <CardContent className="p-6">
               <Ruler className="mb-5 text-[#b18b52]" size={24} />
-              <h3 className="text-lg font-semibold text-[#173d35]">Окна по размеру</h3>
+              {/* h2, а не h3: секция «Решения» идёт сразу после первого экрана, и три h3 без h2
+                  давали перескок уровней — скринридер объявлял подзаголовки без родителя. */}
+              <h2 className="text-lg font-semibold text-[#173d35]">Окна по размеру</h2>
               <p className="mt-2 text-sm leading-6 text-[#5c665f]">
                 Пластиковые и алюминиевые окна для жилых и коммерческих помещений.
               </p>
@@ -1126,7 +1146,7 @@ function App() {
           <Card className="border-black/8 bg-[#fffdf9] shadow-none">
             <CardContent className="p-6">
               <ShieldCheck className="mb-5 text-[#b18b52]" size={24} />
-              <h3 className="text-lg font-semibold text-[#173d35]">Конструкции и двери</h3>
+              <h2 className="text-lg font-semibold text-[#173d35]">Конструкции и двери</h2>
               <p className="mt-2 text-sm leading-6 text-[#5c665f]">
                 Решения для входных групп, фасадов и офисных пространств.
               </p>
@@ -1135,7 +1155,7 @@ function App() {
           <Card className="border-black/8 bg-[#fffdf9] shadow-none">
             <CardContent className="p-6">
               <MessageCircle className="mb-5 text-[#b18b52]" size={24} />
-              <h3 className="text-lg font-semibold text-[#173d35]">Расчёт в WhatsApp</h3>
+              <h2 className="text-lg font-semibold text-[#173d35]">Расчёт в WhatsApp</h2>
               <p className="mt-2 text-sm leading-6 text-[#5c665f]">
                 Отправьте задачу — специалист уточнит параметры и подготовит расчёт.
               </p>
@@ -1209,10 +1229,10 @@ function App() {
             <p className="mt-1">Пн–Сб 09:00–19:00 · воскресенье — выходной</p>
           </div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <a className="font-medium text-[#173d35]" href={CONTACT.phoneHref}>
+            <a className="inline-flex min-h-11 items-center font-medium text-[#173d35]" href={CONTACT.phoneHref}>
               {CONTACT.phone}
             </a>
-            <a className="font-medium text-[#173d35]" href={whatsappHref} target="_blank" rel="noreferrer">
+            <a className="inline-flex min-h-11 items-center font-medium text-[#173d35]" href={whatsappHref} target="_blank" rel="noreferrer">
               WhatsApp
             </a>
             {/* Мёртвый профиль @spf01002 убран: ссылка вернётся, когда хэндл подтвердят. */}
@@ -1226,10 +1246,10 @@ function App() {
                 Instagram
               </a>
             )}
-            <a className="text-[#5c665f] underline underline-offset-2" href={CONTACT.mapUrl} target="_blank" rel="noreferrer">
+            <a className="inline-flex min-h-11 items-center text-[#5c665f] underline underline-offset-2" href={CONTACT.mapUrl} target="_blank" rel="noreferrer">
               Карта 2ГИС
             </a>
-            <a className="text-[#5c665f] underline underline-offset-2" href="#privacy">
+            <a className="inline-flex min-h-11 items-center text-[#5c665f] underline underline-offset-2" href="#privacy">
               Обработка данных
             </a>
           </div>
@@ -1249,7 +1269,7 @@ function App() {
         и на телефоне была не видна.
       */}
       <div
-        className={`fixed inset-x-3 bottom-3 z-30 grid grid-cols-2 gap-2 rounded-2xl border border-white/60 bg-[#173d35]/95 p-2 shadow-[0_20px_45px_-18px_rgba(0,0,0,.45)] backdrop-blur-md transition-[opacity,translate] duration-300 ease-out sm:hidden ${
+        className={`fixed inset-x-3 bottom-[calc(0.75rem_+_env(safe-area-inset-bottom))] z-30 grid grid-cols-2 gap-2 rounded-2xl border border-white/60 bg-[#173d35]/95 p-2 shadow-[0_20px_45px_-18px_rgba(0,0,0,.45)] backdrop-blur-md transition-[opacity,translate] duration-300 ease-out sm:hidden ${
           showBar ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
         }`}
       >
