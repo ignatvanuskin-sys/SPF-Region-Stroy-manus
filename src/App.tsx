@@ -1269,6 +1269,8 @@ function App() {
         и на телефоне была не видна.
       */}
       <div
+        role="region"
+        aria-label="Быстрые действия"
         className={`fixed inset-x-3 bottom-[calc(0.75rem_+_env(safe-area-inset-bottom))] z-30 grid grid-cols-2 gap-2 rounded-2xl border border-white/60 bg-[#173d35]/95 p-2 shadow-[0_20px_45px_-18px_rgba(0,0,0,.45)] backdrop-blur-md transition-[opacity,translate] duration-300 ease-out sm:hidden ${
           showBar ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
         }`}
