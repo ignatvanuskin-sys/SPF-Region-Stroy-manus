@@ -42,3 +42,6 @@ probe_*.js
 probe*.js
 qa*.md
 *-findings.md
+_*.md
+*_progress.md
+audit-scan.js
