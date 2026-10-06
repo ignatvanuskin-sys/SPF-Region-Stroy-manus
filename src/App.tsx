@@ -21,6 +21,7 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { AdditionalSections } from '@/components/additional-sections'
+import { PrivacyNote } from '@/components/privacy-note'
 import { track } from '@/lib/analytics'
 import {
   buildWhatsAppUrl,
@@ -139,6 +140,12 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<SubmitResult | null>(null)
   const submittingRef = useRef(false)
+  /*
+    Фокус после смены шага. Кнопка «Далее» исчезает вместе со своим шагом, и браузер
+    сбрасывает фокус в body — пользователь клавиатуры или скринридера не понимает, что
+    экран сменился. Переводим фокус на вопрос текущего шага (tabIndex={-1}).
+  */
+  const stepTitleRef = useRef<HTMLParagraphElement>(null)
 
   // Ошибку нужно не только показать, но и довести до неё пользователя.
   useEffect(() => {
@@ -148,6 +155,11 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
     firstInvalid.scrollIntoView({ block: 'center', behavior: 'smooth' })
     firstInvalid.focus({ preventScroll: true })
   }, [errors])
+
+  // preventScroll: экран формы сам встаёт в начало, дополнительная прокрутка не нужна.
+  useEffect(() => {
+    stepTitleRef.current?.focus({ preventScroll: true })
+  }, [step])
 
   const draft = useMemo(
     () =>
@@ -408,7 +420,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
             <form onSubmit={onSubmit} noValidate>
               {step === 1 && (
                 <div className="step-enter">
-                  <p className="text-sm font-semibold text-[#173d35]">Что нужно рассчитать?</p>
+                  <p ref={stepTitleRef} tabIndex={-1} className="text-sm font-semibold text-[#173d35]">Что нужно рассчитать?</p>
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     {SERVICES.map((item) => (
                       <button
@@ -479,7 +491,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
 
               {step === 2 && (
                 <div className="step-enter">
-                  <p className="text-sm font-semibold text-[#173d35]">Куда нужен выезд?</p>
+                  <p ref={stepTitleRef} tabIndex={-1} className="text-sm font-semibold text-[#173d35]">Куда нужен выезд?</p>
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Адрес объекта
                     <input
@@ -528,7 +540,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
 
               {step === 3 && (
                 <div className="step-enter">
-                  <p className="text-sm font-semibold text-[#173d35]">Когда удобно связаться?</p>
+                  <p ref={stepTitleRef} tabIndex={-1} className="text-sm font-semibold text-[#173d35]">Когда удобно связаться?</p>
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Желаемая дата
                     <input
@@ -595,7 +607,7 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
 
               {step === 4 && (
                 <div className="step-enter">
-                  <p className="text-sm font-semibold text-[#173d35]">Куда отправить ответ?</p>
+                  <p ref={stepTitleRef} tabIndex={-1} className="text-sm font-semibold text-[#173d35]">Куда отправить ответ?</p>
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Имя
                     <input
@@ -609,7 +621,9 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       className={fieldClass}
                     />
                   </label>
-                  {errors.name && <p id="name-error" className={errorClass}>{errors.name}</p>}
+                  {errors.name && (
+                    <p id="name-error" role="alert" className={errorClass}>{errors.name}</p>
+                  )}
 
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Телефон
@@ -631,7 +645,9 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       />
                     </div>
                   </label>
-                  {errors.phone && <p id="phone-error" className={errorClass}>{errors.phone}</p>}
+                  {errors.phone && (
+                    <p id="phone-error" role="alert" className={errorClass}>{errors.phone}</p>
+                  )}
 
                   <label className="mt-4 block text-sm text-[#59635d]">
                     Комментарий <span className="text-[#9ca39d]">необязательно</span>
@@ -666,14 +682,23 @@ function OrderFlow({ onBack, initialService }: { onBack: () => void; initialServ
                       onChange={(event) => setConsent(event.target.checked)}
                       className="mt-0.5 size-5 shrink-0 accent-[#173d35]"
                     />
-                    <span>
-                      Согласен на обработку персональных данных для подготовки расчёта.{' '}
-                      <a className="font-medium text-[#173d35] underline" href="#privacy">
-                        Как мы работаем с данными
-                      </a>
-                    </span>
+                    <span>Согласен на обработку персональных данных для подготовки расчёта.</span>
                   </label>
-                  {errors.consent && <p id="consent-error" className={errorClass}>{errors.consent}</p>}
+                  {errors.consent && (
+                    <p id="consent-error" role="alert" className={errorClass}>{errors.consent}</p>
+                  )}
+
+                  {/*
+                    Раскрывающийся блок вместо ссылки на #privacy. Пока открыт экран формы,
+                    лендинг размонтирован, и элемента с id="privacy" в DOM нет: ссылка меняла
+                    hash в адресной строке, но не прокручивала и ничего не показывала.
+                  */}
+                  <details className="mt-1 pl-8">
+                    <summary className="inline-flex min-h-11 cursor-pointer items-center text-xs font-medium text-[#173d35] underline underline-offset-4">
+                      Как мы работаем с данными
+                    </summary>
+                    <PrivacyNote className="mt-2 text-xs leading-5 text-[#5c665f]" />
+                  </details>
 
                   <div className="mt-4 flex items-start gap-3 rounded-xl bg-[#f4f1eb] p-4 text-xs leading-5 text-[#5c665f]">
                     <CalendarDays size={17} className="mt-0.5 shrink-0 text-[#b18b52]" /> Менеджер
@@ -855,6 +880,9 @@ function App() {
       setMenuOpen(false)
       smoothScrollTo(target)
       window.history.replaceState(null, '', hash)
+      // preventDefault отменяет и перенос фокуса на цель, который браузер делает сам.
+      // Для skip-link это критично: без переноса клавиатура осталась бы в шапке.
+      if (link.hasAttribute('data-skip-link')) target.focus({ preventScroll: true })
     }
     document.addEventListener('click', onClick)
     return () => document.removeEventListener('click', onClick)
@@ -897,7 +925,23 @@ function App() {
 
   return (
     <>
-      <main className="min-h-screen overflow-x-hidden bg-[#f4f1eb] pb-20 text-[#202522] md:pb-0">
+      {/*
+        Skip-link: первым в DOM, поэтому первым получает фокус по Tab. До фокуса скрыт,
+        в вёрстке не участвует. data-skip-link нужен обработчику якорей ниже, чтобы он
+        не только прокрутил, но и перенёс фокус.
+      */}
+      <a
+        href="#main"
+        data-skip-link
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-full focus:bg-[#173d35] focus:px-5 focus:text-sm focus:font-semibold focus:!text-[#f7f4ee]"
+      >
+        Перейти к содержимому
+      </a>
+      <main
+        id="main"
+        tabIndex={-1}
+        className="min-h-screen overflow-x-hidden bg-[#f4f1eb] pb-20 text-[#202522] md:pb-0"
+      >
       <section
         id="top"
         className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-[#0b1a16]"
@@ -1037,9 +1081,9 @@ function App() {
         <div
           id="mobile-menu"
           inert={!menuOpen}
-          className={`absolute inset-x-0 top-full overflow-hidden border-t bg-[#f4f1eb]/98 backdrop-blur-md transition-[max-height,opacity] duration-300 ease-out lg:hidden ${
+          className={`absolute inset-x-0 top-full overflow-y-auto overscroll-contain border-t bg-[#f4f1eb]/98 backdrop-blur-md transition-[max-height,opacity] duration-300 ease-out lg:hidden ${
             menuOpen
-              ? 'max-h-[70svh] border-black/8 opacity-100'
+              ? 'max-h-[calc(100svh-3.5rem)] border-black/8 opacity-100'
               : 'max-h-0 border-transparent opacity-0'
           }`}
         >

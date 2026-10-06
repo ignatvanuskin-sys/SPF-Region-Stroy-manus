@@ -175,12 +175,13 @@ export function formatPhone(value: string) {
   let digits = value.replace(/\D/g, '')
   if (!digits) return ''
 
-  // Больше 10 цифр — значит номер пришёл целиком (вставка или набор с кодом страны).
-  // Убираем код страны: 8 (местный набор) или 7 (международный).
-  if (digits.length > 10 && (digits.startsWith('8') || digits.startsWith('7'))) {
-    digits = digits.slice(1)
-  }
-  digits = digits.slice(0, 10)
+  /*
+    Больше 10 цифр — значит номер пришёл целиком (вставка или набор с кодом страны).
+    Берём последние 10: код страны (7 или 8) стоит первым, и так он отбрасывается.
+    Раньше лишние цифры отрезались справа, поэтому номер с двумя префиксами
+    («+7 7 701 893 67 87») превращался в мусор из первых десяти цифр.
+  */
+  if (digits.length > 10) digits = digits.slice(-10)
 
   if (digits.length <= 3) return digits
   if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`
@@ -190,14 +191,19 @@ export function formatPhone(value: string) {
 
 /** Полный номер для заявки: +7 (701) 893-67-87 */
 export function toFullPhone(value: string) {
-  const digits = value.replace(/\D/g, '').slice(0, 10)
+  const digits = value.replace(/\D/g, '').slice(-10)
   if (digits.length !== 10) return value.trim()
   return `+7 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 8)}-${digits.slice(8, 10)}`
 }
 
-/** В поле хранится локальная часть без кода страны — значит, нужно ровно 10 цифр. */
+/**
+ * В поле хранится локальная часть без кода страны: ровно 10 цифр, и начинается она
+ * с 6 или 7 — это диапазоны казахстанских номеров в коде +7.
+ * Раньше проверялось только количество цифр, поэтому «0000000000» считалось верным номером.
+ */
 export function isPhoneComplete(value: string) {
-  return value.replace(/\D/g, '').length === 10
+  const digits = value.replace(/\D/g, '')
+  return digits.length === 10 && /^[67]/.test(digits)
 }
 
 export function isValidName(value: string) {

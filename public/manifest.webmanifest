@@ -1,0 +1,26 @@
+{
+  "name": "СПФ Регион Строй — окна, двери и фасадные витражи в Астане",
+  "short_name": "СПФ Регион",
+  "description": "Окна, двери, фасадные витражи и перегородки из металлопластика и алюминия в Астане. Предварительный расчёт и запись на замер.",
+  "lang": "ru",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f1eb",
+  "theme_color": "#173d35",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

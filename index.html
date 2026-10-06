@@ -7,6 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="canonical" href="https://spf-region.vercel.app/" />
     <!-- Фон главного экрана грузим сразу: сайт клиентский, и без preload LCP-картинка
          стартует только после исполнения JS. -->
@@ -34,18 +35,35 @@
       content="Окна, двери и фасадные витражи в Астане. Предварительный расчёт и запись на замер."
     />
     <meta property="og:url" content="https://spf-region.vercel.app/" />
-    <meta property="og:image" content="https://spf-region.vercel.app/og-cover.webp" />
+    <!--
+      Картинка превью — JPEG, а не WebP. WhatsApp строит карточку ссылки строже остальных
+      платформ и при неподходящем формате не ухудшает карточку, а убирает её целиком;
+      поддержка WebP для og:image им не документирована. JPEG поддержан везде, поэтому
+      форматных рисков у карточки нет. Размер держим с запасом к практическому потолку 300 КБ.
+    -->
+    <meta property="og:image" content="https://spf-region.vercel.app/og-cover.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="СПФ Регион Строй — окна, двери и фасадные витражи в Астане"
+    />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="СПФ Регион Строй — окна и конструкции в Астане" />
     <meta name="twitter:description" content="Окна, двери и фасадные витражи в Астане." />
-    <meta name="twitter:image" content="https://spf-region.vercel.app/og-cover.webp" />
+    <meta name="twitter:image" content="https://spf-region.vercel.app/og-cover.jpg" />
+    <meta
+      name="twitter:image:alt"
+      content="СПФ Регион Строй — окна, двери и фасадные витражи в Астане"
+    />
     <title>СПФ Регион Строй — окна и конструкции в Астане</title>
     <script>
       // Домен меняется при публикации, поэтому canonical и Open Graph URL собираем из адреса деплоя.
       ;(function () {
         var origin = window.location.origin
         var pageUrl = origin + window.location.pathname
-        var cover = origin + '/og-cover.webp'
+        var cover = origin + '/og-cover.jpg'
 
         var canonical = document.querySelector('link[rel="canonical"]')
         if (!canonical) {

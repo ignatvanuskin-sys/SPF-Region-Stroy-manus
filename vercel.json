@@ -49,7 +49,7 @@
       ]
     },
     {
-      "source": "/(og-cover.webp|spf-logo.svg|icon.svg|apple-icon.png|favicon.ico)",
+      "source": "/(og-cover.webp|og-cover.jpg|spf-logo.svg|icon.svg|apple-icon.png|favicon.ico)",
       "headers": [
         {
           "key": "Cache-Control",

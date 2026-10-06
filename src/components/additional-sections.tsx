@@ -15,7 +15,8 @@
 import { PriceCalculator } from '@/components/price-calculator'
 import { Cases, Reviews } from '@/components/showcase'
 import { WorksGallery } from '@/components/works-gallery'
-import { CASES, CONTACT, DEMO_MODE, ENTERPRISE_TYPE, type Service } from '@/lib/site-config'
+import { PrivacyNote } from '@/components/privacy-note'
+import { CASES, CONTACT, ENTERPRISE_TYPE, type Service } from '@/lib/site-config'
 
 const solutions: Array<{
   title: string
@@ -275,7 +276,7 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
 
       {CASES.length > 0 && (
         <section
-          id="cases"
+          id="objects"
           className="border-y border-black/8 bg-[#e9e5dc] px-5 py-16 sm:px-8 lg:px-12 lg:py-24"
         >
           <div className="mx-auto max-w-[1240px]">
@@ -514,18 +515,11 @@ export function AdditionalSections({ onOrder }: { onOrder: (service?: Service) =
       <section id="privacy" className="mx-auto max-w-[900px] px-5 pb-16 sm:px-8 lg:pb-24">
         <h2 className="text-lg font-semibold text-[#173d35]">Обработка персональных данных</h2>
         {/*
-          Текст политики зависит от режима: в демонстрации утверждение «данные передаются в
-          CRM-систему» было бы неправдой — форма не отправляет и не сохраняет ничего.
+          Текст общий с формой заявки (PrivacyNote): формулировки не должны разъезжаться,
+          а сам текст зависит от режима — в демонстрации утверждение «данные передаются в
+          CRM-систему» было бы неправдой.
         */}
-        <p className="mt-3 text-sm leading-6 text-[#5c665f]">
-          {DEMO_MODE
-            ? 'Это демонстрационный показ сайта: данные, которые вы заполняете в форме, никуда не отправляются и не сохраняются — ни на сервере компании, ни в браузере. Настоящие персональные данные в форме оставлять не нужно, достаточно любого примера. Реальную заявку можно оставить по телефону, в WhatsApp или письмом на '
-            : 'Имя, телефон, адрес объекта, комментарий и фотографии, которые вы оставляете в форме, используются только для подготовки расчёта и согласования замера. Данные передаются в CRM-систему, которая обрабатывает заявки компании, и не передаются третьим лицам для рекламы. Чтобы изменить или удалить свои данные, напишите на '}
-          <a className="font-medium text-[#173d35] underline" href={`mailto:${CONTACT.email}`}>
-            {CONTACT.email}
-          </a>
-          .
-        </p>
+        <PrivacyNote className="mt-3 text-sm leading-6 text-[#5c665f]" />
       </section>
     </>
   )
